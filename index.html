@@ -762,6 +762,76 @@
             animation: svenBarrelRoll 1.2s ease-in-out;
             transform-origin: center center;
         }
+        @keyframes svenDoubleRoll {
+            0% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(180deg) scale(0.6); }
+            50% { transform: rotate(360deg) scale(1); }
+            75% { transform: rotate(540deg) scale(0.6); }
+            100% { transform: rotate(720deg) scale(1); }
+        }
+        #app.sven-double-roll {
+            animation: svenDoubleRoll 2s ease-in-out;
+            transform-origin: center center;
+        }
+
+        @keyframes svenInvert {
+            0%, 100% { filter: none; }
+            10%, 90% { filter: invert(1) hue-rotate(180deg); }
+        }
+        #app.sven-invert {
+            animation: svenInvert 3s ease-in-out;
+        }
+
+        @keyframes svenZoomPanic {
+            0% { transform: scale(1) rotate(0deg); }
+            15% { transform: scale(3) rotate(5deg); }
+            30% { transform: scale(0.3) rotate(-10deg); }
+            45% { transform: scale(2.5) rotate(8deg); }
+            60% { transform: scale(0.5) rotate(-5deg); }
+            75% { transform: scale(1.8) rotate(3deg); }
+            90% { transform: scale(0.8) rotate(-1deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+        #app.sven-zoom-panic {
+            animation: svenZoomPanic 2.5s ease-in-out;
+            transform-origin: center center;
+        }
+
+        @keyframes svenBounceIn {
+            0% { transform: translateY(-120vh); }
+            30% { transform: translateY(30px); }
+            45% { transform: translateY(-80px); }
+            55% { transform: translateY(15px); }
+            65% { transform: translateY(-30px); }
+            75% { transform: translateY(5px); }
+            85% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+        #display-name.sven-bounce {
+            animation: svenBounceIn 2s cubic-bezier(0.2, 0, 0.4, 1) forwards !important;
+            color: #ff0000 !important;
+            font-size: clamp(2.5rem, 8vw, 5rem) !important;
+        }
+
+        @keyframes svenGlitch {
+            0%, 100% { transform: none; text-shadow: none; }
+            5% { transform: translate(-3px, 2px) skewX(5deg); text-shadow: 3px 0 #ff0000, -3px 0 #00ffff; }
+            10% { transform: translate(3px, -2px) skewX(-3deg); text-shadow: -3px 0 #ff0000, 3px 0 #00ffff; }
+            15% { transform: none; text-shadow: none; }
+            20% { transform: translate(-2px, 3px) skewX(2deg); text-shadow: 2px 0 #ff00ff, -2px 0 #00ff00; }
+            25% { transform: translate(2px, -1px) skewX(-5deg); text-shadow: -2px 0 #ffff00, 2px 0 #ff0000; }
+            30%, 50% { transform: none; text-shadow: none; }
+            55% { transform: translate(4px, -3px) skewX(8deg); text-shadow: 4px 0 #ff0000, -4px 0 #00ffff; }
+            60% { transform: translate(-4px, 3px) skewX(-8deg); text-shadow: -4px 0 #ff00ff, 4px 0 #ffff00; }
+            65%, 80% { transform: none; text-shadow: none; }
+            85% { transform: translate(2px, -4px) skewX(3deg); text-shadow: 3px 0 #00ff00, -3px 0 #ff0000; }
+            90% { transform: translate(-3px, 2px) skewX(-4deg); text-shadow: -3px 0 #ff0000, 3px 0 #00ffff; }
+        }
+        #display-name.sven-glitch {
+            animation: svenGlitch 0.3s steps(1) infinite !important;
+            color: #fff !important;
+            font-size: clamp(2.5rem, 8vw, 5rem) !important;
+        }
 
         .sven-emoji {
             position: fixed;
@@ -1355,10 +1425,21 @@ class StandupShowdown {
     }
 
     async _svenApocalypse(winner) {
-        const overlay = document.getElementById('sven-overlay');
+        const variants = [
+            () => this._svenClassic(winner),
+            () => this._svenGlitchHell(winner),
+            () => this._svenZoomPanic(winner),
+            () => this._svenInvertedReality(winner),
+            () => this._svenBounceQuake(winner),
+        ];
+        const pick = variants[Math.floor(Math.random() * variants.length)];
+        await pick();
+    }
+
+    // Variant 1: The Original — barrel roll + spin + rainbow
+    async _svenClassic(winner) {
         const app = document.getElementById('app');
 
-        // Phase 1: Rapid strobe flashes
         for (let i = 0; i < 6; i++) {
             const colors = ['#ff0000','#ff8800','#ffff00','#00ff00','#0088ff','#ff00ff'];
             this.el.flash.style.background = colors[i % colors.length];
@@ -1369,40 +1450,178 @@ class StandupShowdown {
         }
         this.el.flash.style.background = '';
 
-        // Phase 2: Name spins in wildly
         this.el.displayName.textContent = winner;
         this.el.displayName.className = 'sven-spin';
-
-        // Phase 3: Violent earthquake
         this.el.stage.classList.add('sven-shake');
-
-        // Phase 4: Emoji rain
         this._startEmojiRain();
 
         await this._sleep(800);
-
-        // Phase 5: BARREL ROLL
         app.classList.add('sven-roll');
-
         await this._sleep(1200);
         app.classList.remove('sven-roll');
 
-        // Phase 6: Settle into rainbow cycling
         this.el.displayName.className = 'sven-winner';
         this.el.stage.classList.remove('sven-shake');
         this.el.stage.classList.add('sven-stage');
 
         await this._sleep(500);
-
-        // Clean up after a while (keep rainbow glow going)
         setTimeout(() => {
             this.el.stage.classList.remove('sven-stage');
             this._stopEmojiRain();
         }, 8000);
     }
 
-    _startEmojiRain() {
-        const emojis = ['🚨','🔥','💀','😱','🤮','💩','⚠️','🙃','👹','☠️','🌋','😈'];
+    // Variant 2: Glitch horror — digital corruption + inverted colors
+    async _svenGlitchHell(winner) {
+        const app = document.getElementById('app');
+
+        // Rapid white flashes
+        for (let i = 0; i < 10; i++) {
+            this.el.flash.style.background = i % 2 === 0 ? '#ffffff' : '#000000';
+            this.el.flash.classList.add('flash');
+            await this._sleep(30);
+            this.el.flash.classList.remove('flash');
+            await this._sleep(20);
+        }
+        this.el.flash.style.background = '';
+
+        this.el.displayName.textContent = winner;
+        this.el.displayName.className = 'sven-glitch';
+        this.el.stage.classList.add('sven-shake');
+
+        this._startEmojiRain(['💀','☠️','👾','🤖','⚡','🪦','🫠','💻','🐛','🦠']);
+
+        await this._sleep(600);
+        app.classList.add('sven-invert');
+        await this._sleep(3000);
+        app.classList.remove('sven-invert');
+
+        this.el.displayName.className = 'sven-winner';
+        this.el.stage.classList.remove('sven-shake');
+        this.el.stage.classList.add('sven-stage');
+
+        await this._sleep(500);
+        setTimeout(() => {
+            this.el.stage.classList.remove('sven-stage');
+            this._stopEmojiRain();
+        }, 8000);
+    }
+
+    // Variant 3: Zoom panic — scale in/out wildly
+    async _svenZoomPanic(winner) {
+        const app = document.getElementById('app');
+
+        // Strobe
+        for (let i = 0; i < 8; i++) {
+            const colors = ['#ff0000','#ffffff','#ff0000','#ffff00','#ff0000','#00ffff','#ff00ff','#ff0000'];
+            this.el.flash.style.background = colors[i];
+            this.el.flash.classList.add('flash');
+            await this._sleep(40);
+            this.el.flash.classList.remove('flash');
+            await this._sleep(30);
+        }
+        this.el.flash.style.background = '';
+
+        this.el.displayName.textContent = winner;
+        this.el.displayName.className = 'sven-spin';
+        this.el.stage.classList.add('sven-shake');
+
+        this._startEmojiRain(['🚨','😵‍💫','🌀','🎪','🤡','🫨','🤯','💥','⚠️','🔥']);
+
+        await this._sleep(600);
+        app.classList.add('sven-zoom-panic');
+        await this._sleep(2500);
+        app.classList.remove('sven-zoom-panic');
+
+        this.el.displayName.className = 'sven-winner';
+        this.el.stage.classList.remove('sven-shake');
+        this.el.stage.classList.add('sven-stage');
+
+        await this._sleep(500);
+        setTimeout(() => {
+            this.el.stage.classList.remove('sven-stage');
+            this._stopEmojiRain();
+        }, 8000);
+    }
+
+    // Variant 4: Inverted reality — colors flip, double barrel roll
+    async _svenInvertedReality(winner) {
+        const app = document.getElementById('app');
+
+        app.classList.add('sven-invert');
+        await this._sleep(300);
+
+        for (let i = 0; i < 4; i++) {
+            this.el.flash.style.background = '#00ffff';
+            this.el.flash.classList.add('flash');
+            await this._sleep(100);
+            this.el.flash.classList.remove('flash');
+            await this._sleep(60);
+        }
+        this.el.flash.style.background = '';
+
+        this.el.displayName.textContent = winner;
+        this.el.displayName.className = 'sven-spin';
+        this.el.stage.classList.add('sven-shake');
+
+        this._startEmojiRain(['🙃','🔮','👁️','🌈','✨','🪩','🎭','👻','🫥','🌚']);
+
+        await this._sleep(800);
+        app.classList.remove('sven-invert');
+        app.classList.add('sven-double-roll');
+        await this._sleep(2000);
+        app.classList.remove('sven-double-roll');
+
+        this.el.displayName.className = 'sven-winner';
+        this.el.stage.classList.remove('sven-shake');
+        this.el.stage.classList.add('sven-stage');
+
+        await this._sleep(500);
+        setTimeout(() => {
+            this.el.stage.classList.remove('sven-stage');
+            this._stopEmojiRain();
+        }, 8000);
+    }
+
+    // Variant 5: Bounce quake — name drops in from above, earthquake
+    async _svenBounceQuake(winner) {
+        // No flash — just sudden silence then BOOM
+        await this._sleep(400);
+
+        this.el.displayName.textContent = winner;
+        this.el.displayName.className = 'sven-bounce';
+        this.el.stage.classList.add('sven-shake');
+
+        await this._sleep(300);
+
+        // Delayed barrage of flashes
+        for (let i = 0; i < 12; i++) {
+            const colors = ['#ff0000','#ff4400','#ff8800','#ffcc00','#ff0000','#ff0066','#ff0000','#ff8800','#ff0000','#ffcc00','#ff0000','#ff0044'];
+            this.el.flash.style.background = colors[i];
+            this.el.flash.classList.add('flash');
+            await this._sleep(50);
+            this.el.flash.classList.remove('flash');
+            await this._sleep(50);
+        }
+        this.el.flash.style.background = '';
+
+        this._startEmojiRain(['🔥','🌋','💣','💥','☄️','🧨','⚡','🔥','💀','😤']);
+
+        await this._sleep(800);
+
+        this.el.displayName.className = 'sven-winner';
+        this.el.stage.classList.remove('sven-shake');
+        this.el.stage.classList.add('sven-stage');
+
+        await this._sleep(500);
+        setTimeout(() => {
+            this.el.stage.classList.remove('sven-stage');
+            this._stopEmojiRain();
+        }, 8000);
+    }
+
+    _startEmojiRain(customEmojis) {
+        const emojis = customEmojis || ['🚨','🔥','💀','😱','🤮','💩','⚠️','🙃','👹','☠️','🌋','😈'];
         this._emojiInterval = setInterval(() => {
             const el = document.createElement('div');
             el.className = 'sven-emoji';
