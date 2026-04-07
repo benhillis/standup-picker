@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐧 Linux on Windows — Standup Showdown</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0b0b0f;
+            --surface: #16161e;
+            --surface-border: #2a2a38;
+            --accent: #00e8ff;
+            --accent-dim: #007a88;
+            --accent2: #c850ff;
+            --text: #f0f0f5;
+            --text-dim: #8888a0;
+            --done: #3ddc84;
+            --danger: #ff4466;
+            --warn: #ffcc00;
+            --font: 'Orbitron', monospace;
+        }
+
+        html, body {
+            height: 100%;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            overflow: hidden;
+        }
+
+        /* ═══ Flash overlay ═══ */
+        #flash-overlay {
+            position: fixed; inset: 0;
+            z-index: 1000;
+            background: var(--accent);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.05s;
+        }
+        #flash-overlay.flash { opacity: 0.5; }
+
+        /* ═══ App ═══ */
+        #app {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* ═══ Header ═══ */
+        header {
+            text-align: center;
+            padding: 24px 20px 8px;
+            flex-shrink: 0;
+        }
+        header h1 {
+            font-weight: 900;
+            font-size: clamp(1.6rem, 4vw, 2.8rem);
+            color: var(--accent);
+            letter-spacing: 8px;
+        }
+        header .subtitle {
+            color: var(--text-dim);
+            margin-top: 6px;
+            font-size: 0.75rem;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+        }
+
+        /* ═══ Screens ═══ */
+        .screen { width: 100%; max-width: 800px; padding: 0 20px; }
+        .hidden { display: none !important; }
+
+        /* ═══ Setup Screen ═══ */
+        #setup-screen {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .setup-card {
+            background: var(--surface);
+            border: 2px solid var(--surface-border);
+            border-radius: 8px;
+            padding: 40px;
+            width: 100%;
+            max-width: 600px;
+        }
+        .setup-card h2 {
+            font-size: 1.2rem;
+            text-align: center;
+            margin-bottom: 28px;
+            color: var(--accent);
+            letter-spacing: 4px;
+        }
+        .input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .input-row input {
+            flex: 1;
+            padding: 14px 18px;
+            background: var(--bg);
+            border: 2px solid var(--surface-border);
+            border-radius: 4px;
+            color: var(--text);
+            font-size: 1rem;
+            font-family: var(--font);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-row input:focus {
+            border-color: var(--accent);
+        }
+        .input-row input::placeholder { color: var(--text-dim); }
+
+        .btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--font);
+            letter-spacing: 2px;
+        }
+        .btn-add {
+            background: transparent;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+        }
+        .btn-add:hover {
+            background: var(--accent);
+            color: var(--bg);
+        }
+
+        /* Name chips */
+        #name-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 24px;
+            min-height: 40px;
+        }
+        .chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: var(--bg);
+            border: 2px solid var(--accent-dim);
+            border-radius: 4px;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            color: var(--text);
+            animation: chipIn 0.25s ease-out;
+        }
+        .chip .remove-chip {
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            color: var(--text-dim);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+        .chip .remove-chip:hover { background: var(--danger); color: #fff; }
+        @keyframes chipIn {
+            from { transform: scale(0.7); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .btn-start {
+            width: 100%;
+            padding: 18px;
+            background: var(--accent);
+            border: none;
+            color: var(--bg);
+            font-family: var(--font);
+            font-size: 1rem;
+            font-weight: 900;
+            letter-spacing: 4px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-start:disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+        }
+        .btn-start:not(:disabled):hover {
+            filter: brightness(1.15);
+            transform: translateY(-1px);
+        }
+
+        .setup-hint {
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.7rem;
+            margin-top: 14px;
+            letter-spacing: 1px;
+        }
+        .setup-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+        }
+
+        /* ═══ Main Screen ═══ */
+        #main-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 20px 30px;
+            gap: 24px;
+        }
+
+        /* ═══ Stage ═══ */
+        #stage {
+            width: 100%;
+            max-width: 720px;
+            min-height: 220px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 36px;
+            background: var(--surface);
+            border: 2px solid var(--surface-border);
+            border-radius: 8px;
+        }
+
+        #display-name {
+            font-size: clamp(2.4rem, 7vw, 4.5rem);
+            font-weight: 900;
+            text-align: center;
+            letter-spacing: 8px;
+            min-height: 1.2em;
+            color: var(--text);
+        }
+        #display-name.cycling {
+            animation: namePulse 0.1s ease-in-out;
+        }
+        #display-name.winner {
+            color: var(--accent);
+            text-shadow: 0 0 40px var(--accent);
+            animation: winnerGlow 1.5s ease-in-out infinite alternate;
+        }
+        #display-name.winner-enter {
+            animation: winnerReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        @keyframes namePulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+            100% { transform: scale(1); }
+        }
+        @keyframes winnerGlow {
+            from { text-shadow: 0 0 20px color-mix(in srgb, var(--accent), transparent 50%); }
+            to { text-shadow: 0 0 50px var(--accent); }
+        }
+        @keyframes winnerReveal {
+            0% { transform: scale(0.3) rotateY(90deg); opacity: 0; }
+            60% { transform: scale(1.1) rotateY(-8deg); opacity: 1; }
+            100% { transform: scale(1) rotateY(0deg); opacity: 1; }
+        }
+
+        /* ═══ Speaking Timer ═══ */
+        #speaking-timer {
+            margin-top: 16px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: 4px;
+            color: var(--done);
+            visibility: hidden;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        #speaking-timer.running { visibility: visible; }
+        #speaking-timer .timer-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--done);
+            box-shadow: 0 0 12px var(--done);
+            animation: timerBlink 1.5s ease-in-out infinite;
+        }
+        #speaking-timer.warning .timer-dot {
+            background: var(--warn);
+            box-shadow: 0 0 12px var(--warn);
+        }
+        #speaking-timer.warning {
+            color: var(--warn);
+        }
+        #speaking-timer.overtime .timer-dot {
+            background: var(--danger);
+            box-shadow: 0 0 16px var(--danger);
+        }
+        #speaking-timer.overtime {
+            color: var(--danger);
+            animation: timerUrgent 0.7s ease-in-out infinite alternate;
+        }
+        @keyframes timerBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        @keyframes timerUrgent {
+            from { filter: brightness(1); }
+            to { filter: brightness(1.4); }
+        }
+
+        /* ═══ Pick Button ═══ */
+        #pick-btn {
+            padding: 20px 56px;
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            border-radius: 6px;
+            font-family: var(--font);
+            font-size: 1.1rem;
+            font-weight: 900;
+            letter-spacing: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+        #pick-btn:hover:not(:disabled) {
+            filter: brightness(1.15);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px color-mix(in srgb, var(--accent), transparent 60%);
+        }
+        #pick-btn:active:not(:disabled) {
+            transform: translateY(0) scale(0.98);
+        }
+        #pick-btn:disabled {
+            opacity: 0.2;
+            cursor: not-allowed;
+        }
+        .btn-pulse {
+            animation: buttonPulse 2s ease-in-out infinite !important;
+        }
+        @keyframes buttonPulse {
+            0%, 100% { box-shadow: 0 0 0 transparent; }
+            50% { box-shadow: 0 0 30px color-mix(in srgb, var(--accent), transparent 50%); }
+        }
+
+        /* ═══ Name Lists ═══ */
+        #lists {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            width: 100%;
+            max-width: 720px;
+            flex-shrink: 0;
+            min-height: 0;
+        }
+        .name-list {
+            background: var(--surface);
+            border: 2px solid var(--surface-border);
+            border-radius: 6px;
+            padding: 16px;
+            overflow-y: auto;
+            max-height: 260px;
+        }
+        .name-list h3 {
+            font-size: 0.7rem;
+            letter-spacing: 4px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+        #waiting-list h3 { color: var(--accent); }
+        #done-list h3 { color: var(--done); }
+
+        .name-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 7px 14px;
+            margin: 3px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+        .name-tag.waiting {
+            background: var(--bg);
+            border: 2px solid var(--accent-dim);
+            color: var(--text);
+            gap: 6px;
+        }
+        .remove-waiting {
+            width: 20px; height: 20px;
+            border-radius: 4px;
+            border: none;
+            background: transparent;
+            color: var(--text-dim);
+            font-size: 14px;
+            line-height: 1;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            transition: all 0.15s;
+        }
+        .remove-waiting:hover {
+            background: var(--danger);
+            color: #fff;
+        }
+        .name-tag.done {
+            background: color-mix(in srgb, var(--done) 12%, transparent);
+            border: 2px solid var(--done);
+            color: var(--done);
+        }
+        .name-tag.done::before {
+            content: '✓ ';
+        }
+        .name-tag.removing {
+            animation: tagRemove 0.4s ease-in forwards;
+        }
+        @keyframes tagRemove {
+            to { transform: scale(0) rotate(15deg); opacity: 0; }
+        }
+        .name-tag.adding {
+            animation: tagAdd 0.3s ease-out;
+        }
+        @keyframes tagAdd {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* ═══ Finish button variant ═══ */
+        #pick-btn.finish {
+            background: var(--done);
+            animation: none !important;
+        }
+
+        /* ═══ Fractal Strip ═══ */
+        #fractal-strip {
+            display: block;
+            width: 100%;
+            max-width: 720px;
+            border-radius: 6px;
+            overflow: hidden;
+            flex: 1;
+            min-height: 60px;
+            opacity: 0.7;
+            transition: all 0.6s ease-in-out;
+        }
+        #fractal-strip.fullscreen {
+            position: fixed;
+            inset: 0;
+            max-width: none;
+            border-radius: 0;
+            z-index: -1;
+            opacity: 0.35;
+            filter: brightness(0.6) saturate(1.3);
+        }
+
+        /* ═══ Controls ═══ */
+        #controls {
+            display: flex;
+            gap: 12px;
+            flex-shrink: 0;
+            padding-bottom: 12px;
+        }
+        .btn-ghost {
+            padding: 12px 22px;
+            background: transparent;
+            border: 2px solid var(--surface-border);
+            color: var(--text-dim);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.8rem;
+            font-family: var(--font);
+            letter-spacing: 2px;
+        }
+        .btn-ghost:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* ═══ Done Screen ═══ */
+        #done-screen {
+            text-align: center;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+            overflow-y: auto;
+            max-height: 100vh;
+        }
+        #done-screen h2 {
+            font-size: clamp(1.5rem, 3.5vw, 2.4rem);
+            color: var(--accent);
+            margin-bottom: 10px;
+            letter-spacing: 5px;
+            animation: doneTitle 0.8s ease-out;
+        }
+        @keyframes doneTitle {
+            from { transform: scale(0.6); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        #done-screen p {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+            letter-spacing: 2px;
+        }
+
+        .summary-stats {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+        .stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 18px 28px;
+            background: var(--surface);
+            border: 2px solid var(--surface-border);
+            border-radius: 6px;
+            min-width: 110px;
+            animation: doneTitle 0.7s ease-out backwards;
+        }
+        .stat-value {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: var(--accent);
+        }
+        .stat-label {
+            font-size: 0.6rem;
+            color: var(--text-dim);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-top: 6px;
+        }
+
+        #order-list {
+            list-style: none;
+            max-width: 520px;
+            margin: 0 auto 30px;
+        }
+        #order-list li {
+            padding: 14px 20px;
+            margin: 6px 0;
+            background: var(--surface);
+            border: 2px solid var(--surface-border);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            animation: orderIn 0.35s ease-out backwards;
+        }
+        #order-list li .order-num {
+            width: 30px; height: 30px;
+            border-radius: 4px;
+            background: var(--accent-dim);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+        .order-name {
+            flex: 1;
+            text-align: left;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        .order-time {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+        }
+        .badge {
+            font-size: 0.6rem;
+            padding: 3px 10px;
+            border-radius: 4px;
+            letter-spacing: 1px;
+            white-space: nowrap;
+            font-weight: 700;
+        }
+        .badge.longest {
+            background: color-mix(in srgb, var(--danger) 20%, transparent);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+        .badge.shortest {
+            background: color-mix(in srgb, var(--done) 20%, transparent);
+            border: 1px solid var(--done);
+            color: var(--done);
+        }
+        .absent-divider {
+            border-color: color-mix(in srgb, var(--danger) 25%, transparent) !important;
+            background: transparent !important;
+            justify-content: center;
+            padding: 10px 0 6px !important;
+        }
+        .absent-label {
+            font-size: 0.6rem;
+            letter-spacing: 5px;
+            color: color-mix(in srgb, var(--danger) 60%, transparent);
+        }
+        .absent-row {
+            opacity: 0.4;
+            border-color: color-mix(in srgb, var(--danger) 15%, transparent) !important;
+        }
+        .absent-num {
+            background: color-mix(in srgb, var(--danger) 15%, transparent) !important;
+            color: var(--danger) !important;
+        }
+        .absent-name {
+            color: var(--text-dim);
+            text-decoration: line-through;
+            text-decoration-color: color-mix(in srgb, var(--danger) 40%, transparent);
+        }
+        @keyframes orderIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* ═══ Shake ═══ */
+        .shake {
+            animation: screenShake 0.4s ease-out;
+        }
+        @keyframes screenShake {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-4px, -2px); }
+            20% { transform: translate(4px, 2px); }
+            30% { transform: translate(-3px, 1px); }
+            40% { transform: translate(3px, -1px); }
+            50% { transform: translate(-2px, 2px); }
+        }
+
+        /* ═══ Accent bar at top ═══ */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent));
+            z-index: 100;
+        }
+
+        /* ═══ Responsive ═══ */
+        @media (max-width: 600px) {
+            .setup-card { padding: 24px; }
+            #stage { min-height: 180px; padding: 24px; }
+            #pick-btn { padding: 16px 36px; font-size: 0.9rem; }
+            #lists { grid-template-columns: 1fr; }
+            .name-list { max-height: 160px; }
+            .summary-stats { gap: 12px; }
+            .stat { padding: 14px 18px; min-width: 90px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="flash-overlay"></div>
+
+<div id="app">
+    <header>
+        <h1>LINUX ON WINDOWS</h1>
+        <p class="subtitle">Daily Standup</p>
+    </header>
+
+    <!-- Setup Screen -->
+    <div id="setup-screen" class="screen hidden">
+        <div class="setup-card">
+            <h2>🐧 Assemble Your Team</h2>
+            <div class="input-row">
+                <input type="text" id="name-input" placeholder="Enter a name..." autocomplete="off">
+                <button class="btn btn-add" id="add-btn">Add</button>
+            </div>
+            <div id="name-chips"></div>
+            <div class="setup-actions">
+                <button class="btn btn-start" id="start-btn" disabled>⚔️ BEGIN THE SHOWDOWN ⚔️</button>
+                <button class="btn-ghost" id="defaults-btn">↩ Reset to Defaults</button>
+            </div>
+            <p class="setup-hint">Add at least 2 team members to begin. Press Enter to add quickly.</p>
+        </div>
+    </div>
+
+    <!-- Main Screen -->
+    <div id="main-screen" class="hidden">
+        <div id="stage">
+            <div id="display-name">Ready?</div>
+            <div id="speaking-timer"><span class="timer-dot"></span><span class="timer-value">0:00</span></div>
+        </div>
+
+        <button id="pick-btn" class="btn-pulse">🎲 PICK NEXT 🎲</button>
+
+        <div id="lists">
+            <div class="name-list" id="waiting-list">
+                <h3>⏳ Waiting</h3>
+                <div id="waiting-names"></div>
+            </div>
+            <div class="name-list" id="done-list">
+                <h3>✅ Completed</h3>
+                <div id="done-names"></div>
+            </div>
+        </div>
+
+        <canvas id="fractal-strip"></canvas>
+
+        <div id="controls">
+            <button class="btn-ghost" id="reset-btn">🔄 New Round</button>
+            <button class="btn-ghost" id="edit-btn">✏️ Edit Team</button>
+        </div>
+    </div>
+
+    <!-- All Done Screen -->
+    <div id="done-screen" class="screen hidden">
+        <h2>🎉 STANDUP COMPLETE! 🎉</h2>
+        <p>Everyone has spoken. Great job, team!</p>
+        <div id="summary-stats" class="summary-stats"></div>
+        <ul id="order-list"></ul>
+        <button class="btn btn-start" id="new-round-btn">🔄 NEW ROUND</button>
+        <br><br>
+        <button class="btn-ghost" id="done-edit-btn">✏️ Edit Team</button>
+    </div>
+</div>
+
+<script>
+// ═══ Mini Fractal Renderer (decorative strip) ═══
+
+const JULIA_PRESETS = [
+    { cx:-0.4, cy:0.6 }, { cx:0.285, cy:0.01 }, { cx:0.285, cy:0.013 },
+    { cx:0.45, cy:0.1428 }, { cx:-0.70176, cy:-0.3842 }, { cx:-0.7, cy:0.27015 },
+    { cx:-0.8, cy:0.156 }, { cx:-0.12, cy:0.75 }, { cx:-0.75, cy:0.11 },
+    { cx:-0.39054, cy:0.58679 }, { cx:-0.162, cy:1.04 }, { cx:-0.1, cy:0.651 },
+    { cx:-0.835, cy:-0.2321 }, { cx:-0.7269, cy:0.1889 }, { cx:-0.624, cy:0.435 },
+    { cx:0.355, cy:0.355 }, { cx:-0.54, cy:0.54 }, { cx:-0.52, cy:0.57 },
+    { cx:-0.55, cy:0.478 }, { cx:0.37, cy:0.1 }, { cx:-0.687, cy:0.312 },
+    { cx:-0.194, cy:0.6557 }, { cx:0.281717921, cy:-0.5312109 }, { cx:0.3, cy:0.5 },
+];
+
+const STRIP_VERT = `
+attribute vec2 a_pos;
+void main() { gl_Position = vec4(a_pos, 0.0, 1.0); }
+`;
+
+const STRIP_FRAG = `
+precision highp float;
+uniform vec2 u_res;
+uniform vec2 u_c;
+uniform float u_hue;
+uniform float u_time;
+
+const int MAX_ITER = 150;
+
+vec3 palette(float t, float hue) {
+    vec3 a = vec3(0.5);
+    vec3 b = vec3(0.5);
+    vec3 c = vec3(1.0);
+    vec3 d = vec3(hue, hue + 0.33, hue + 0.67);
+    return a + b * cos(6.28318 * (c * t + d));
+}
+
+vec3 fractalSample(vec2 uv) {
+    vec2 z = uv;
+    vec2 c = u_c;
+    float iter = 0.0;
+    for (int i = 0; i < MAX_ITER; i++) {
+        if (dot(z, z) > 256.0) break;
+        float xn = z.x * z.x - z.y * z.y + c.x;
+        z.y = 2.0 * z.x * z.y + c.y;
+        z.x = xn;
+        iter += 1.0;
+    }
+
+    if (iter >= float(MAX_ITER)) {
+        float d = dot(z, z);
+        return vec3(exp(-d * 0.5) * 0.04);
+    }
+
+    float sl = iter - log2(log2(dot(z, z))) + 4.0;
+    float t = sl / float(MAX_ITER);
+    float h = mod(u_hue + sl * 0.013 + u_time * 0.012, 1.0);
+    vec3 col = palette(t * 3.0 + u_time * 0.015, h);
+    col *= 0.15 + 0.85 * pow(t, 0.35);
+    float edge = exp(-t * 6.0);
+    col += edge * palette(0.5, h) * 0.2;
+    return col;
+}
+
+void main() {
+    float aspect = u_res.x / u_res.y;
+
+    // 2x2 supersampling
+    vec3 col = vec3(0.0);
+    for (int dx = 0; dx < 2; dx++) {
+        for (int dy = 0; dy < 2; dy++) {
+            vec2 off = (vec2(float(dx), float(dy)) - 0.5) * 0.5;
+            vec2 uv = ((gl_FragCoord.xy + off) / u_res - 0.5) * 3.5;
+            uv.x *= aspect;
+            col += fractalSample(uv);
+        }
+    }
+    gl_FragColor = vec4(col * 0.25, 1.0);
+}
+`;
+
+class FractalStrip {
+    constructor(canvas) {
+        this.canvas = canvas;
+        const gl = canvas.getContext('webgl', { antialias: false });
+        if (!gl) { this.gl = null; return; }
+        this.gl = gl;
+        this.lastIdx = -1;
+        this.startTime = 0;
+        this._init();
+    }
+
+    _init() {
+        const gl = this.gl;
+        const compile = (type, src) => {
+            const s = gl.createShader(type);
+            gl.shaderSource(s, src);
+            gl.compileShader(s);
+            return s;
+        };
+        const vs = compile(gl.VERTEX_SHADER, STRIP_VERT);
+        const fs = compile(gl.FRAGMENT_SHADER, STRIP_FRAG);
+        this.prog = gl.createProgram();
+        gl.attachShader(this.prog, vs);
+        gl.attachShader(this.prog, fs);
+        gl.linkProgram(this.prog);
+        gl.useProgram(this.prog);
+
+        const buf = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+        const aPos = gl.getAttribLocation(this.prog, 'a_pos');
+        gl.enableVertexAttribArray(aPos);
+        gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+        this.u = {};
+        for (const name of ['u_res','u_c','u_hue','u_time']) {
+            this.u[name] = gl.getUniformLocation(this.prog, name);
+        }
+    }
+
+    generate() {
+        if (!this.gl) return;
+
+        let idx;
+        do { idx = Math.floor(Math.random() * JULIA_PRESETS.length); }
+        while (idx === this.lastIdx && JULIA_PRESETS.length > 1);
+        this.lastIdx = idx;
+
+        this.preset = JULIA_PRESETS[idx];
+        this.hue = Math.random();
+        this.startTime = performance.now() / 1000;
+
+        // Defer sizing until after layout has painted
+        requestAnimationFrame(() => {
+            const rect = this.canvas.getBoundingClientRect();
+            if (rect.width === 0 || rect.height === 0) return;
+            this.canvas.width = Math.round(rect.width * window.devicePixelRatio);
+            this.canvas.height = Math.round(rect.height * window.devicePixelRatio);
+            this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+
+            if (!this._running) {
+                this._running = true;
+                this._animate();
+            }
+        });
+    }
+
+    _animate() {
+        if (!this.gl || !this.preset || this.canvas.width === 0) return;
+        const gl = this.gl;
+        const t = performance.now() / 1000 - this.startTime;
+        const p = this.preset;
+
+        const cx = p.cx
+            + Math.sin(t * 0.11) * 0.035
+            + Math.sin(t * 0.07) * 0.015
+            + Math.sin(t * 0.23) * 0.008;
+        const cy = p.cy
+            + Math.cos(t * 0.13) * 0.035
+            + Math.cos(t * 0.19) * 0.015
+            + Math.cos(t * 0.31) * 0.008;
+
+        gl.useProgram(this.prog);
+        gl.uniform2f(this.u.u_res, this.canvas.width, this.canvas.height);
+        gl.uniform2f(this.u.u_c, cx, cy);
+        gl.uniform1f(this.u.u_hue, this.hue);
+        gl.uniform1f(this.u.u_time, t);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+        requestAnimationFrame(() => this._animate());
+    }
+
+    goFullscreen() {
+        this.canvas.classList.add('fullscreen');
+        // Re-size for full window after the CSS transition kicks in
+        requestAnimationFrame(() => {
+            this.canvas.width = Math.round(window.innerWidth * window.devicePixelRatio);
+            this.canvas.height = Math.round(window.innerHeight * window.devicePixelRatio);
+            if (this.gl) this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+        });
+    }
+
+    goStrip() {
+        this.canvas.classList.remove('fullscreen');
+    }
+}
+
+let fractalStrip = null;
+
+class StandupShowdown {
+    static DEFAULTS = ['Ben', 'Brian', 'Daman', 'Justus', 'Kyle', 'Pierre', 'Sunil', 'Sven', 'Will'];
+
+    constructor() {
+        this.names = [];
+        this.remaining = [];
+        this.completed = [];
+        this.absent = [];
+        this.isSpinning = false;
+        this.finishMode = false;
+        this.timerInterval = null;
+        this.timerStart = null;
+        this._cacheDOM();
+        this._bindEvents();
+        this._loadFromStorage();
+        this._startShowdown();
+    }
+
+    _cacheDOM() {
+        this.el = {
+            setupScreen:   document.getElementById('setup-screen'),
+            mainScreen:    document.getElementById('main-screen'),
+            doneScreen:    document.getElementById('done-screen'),
+            nameInput:     document.getElementById('name-input'),
+            addBtn:        document.getElementById('add-btn'),
+            startBtn:      document.getElementById('start-btn'),
+            nameChips:     document.getElementById('name-chips'),
+            stage:         document.getElementById('stage'),
+            displayName:   document.getElementById('display-name'),
+            speakingTimer: document.getElementById('speaking-timer'),
+            timerValue:    document.querySelector('#speaking-timer .timer-value'),
+            pickBtn:       document.getElementById('pick-btn'),
+            waitingNames:  document.getElementById('waiting-names'),
+            doneNames:     document.getElementById('done-names'),
+            resetBtn:      document.getElementById('reset-btn'),
+            editBtn:       document.getElementById('edit-btn'),
+            orderList:     document.getElementById('order-list'),
+            summaryStats:  document.getElementById('summary-stats'),
+            newRoundBtn:   document.getElementById('new-round-btn'),
+            doneEditBtn:   document.getElementById('done-edit-btn'),
+            defaultsBtn:   document.getElementById('defaults-btn'),
+            flash:         document.getElementById('flash-overlay'),
+        };
+    }
+
+    _bindEvents() {
+        this.el.addBtn.addEventListener('click', () => this._addName());
+        this.el.nameInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') this._addName();
+        });
+        this.el.startBtn.addEventListener('click', () => this._startShowdown());
+        this.el.pickBtn.addEventListener('click', () => this._onPickBtn());
+        this.el.resetBtn.addEventListener('click', () => this._resetRound());
+        this.el.editBtn.addEventListener('click', () => this._showSetup());
+        this.el.newRoundBtn.addEventListener('click', () => this._resetRound());
+        this.el.doneEditBtn.addEventListener('click', () => this._showSetup());
+        this.el.defaultsBtn.addEventListener('click', () => this._resetToDefaults());
+
+        document.addEventListener('keydown', e => {
+            if (e.code === 'Space' && !this.el.mainScreen.classList.contains('hidden')) {
+                e.preventDefault();
+                this._onPickBtn();
+            }
+        });
+    }
+
+    _loadFromStorage() {
+        try {
+            const saved = localStorage.getItem('standup-showdown-names');
+            this.names = saved ? JSON.parse(saved) : [...StandupShowdown.DEFAULTS];
+        } catch (e) {
+            this.names = [...StandupShowdown.DEFAULTS];
+        }
+        this._renderChips();
+    }
+
+    _resetToDefaults() {
+        this.names = [...StandupShowdown.DEFAULTS];
+        this._saveToStorage();
+        this._renderChips();
+    }
+
+    _saveToStorage() {
+        localStorage.setItem('standup-showdown-names', JSON.stringify(this.names));
+    }
+
+    _addName() {
+        const raw = this.el.nameInput.value.trim();
+        if (!raw) return;
+        const newNames = raw.split(',').map(n => n.trim()).filter(n => n.length > 0);
+        for (const name of newNames) {
+            if (!this.names.includes(name)) {
+                this.names.push(name);
+            }
+        }
+        this.el.nameInput.value = '';
+        this.el.nameInput.focus();
+        this._saveToStorage();
+        this._renderChips();
+    }
+
+    _removeName(name) {
+        this.names = this.names.filter(n => n !== name);
+        this._saveToStorage();
+        this._renderChips();
+    }
+
+    _renderChips() {
+        this.el.nameChips.innerHTML = '';
+        this.names.forEach(name => {
+            const chip = document.createElement('div');
+            chip.className = 'chip';
+            chip.innerHTML = `
+                <span>${this._esc(name)}</span>
+                <button class="remove-chip" data-name="${this._esc(name)}">×</button>
+            `;
+            chip.querySelector('.remove-chip').addEventListener('click', () => this._removeName(name));
+            this.el.nameChips.appendChild(chip);
+        });
+        this.el.startBtn.disabled = this.names.length < 2;
+    }
+
+    _esc(str) {
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
+    }
+
+    _onPickBtn() {
+        if (this.finishMode) {
+            this._finishStandup();
+        } else {
+            this.pickNext();
+        }
+    }
+
+    _setPickMode() {
+        this.finishMode = false;
+        this.el.pickBtn.textContent = '🎲 PICK NEXT 🎲';
+        this.el.pickBtn.classList.remove('finish');
+    }
+
+    _setFinishMode() {
+        this.finishMode = true;
+        this.el.pickBtn.textContent = '✅ FINISH STANDUP';
+        this.el.pickBtn.classList.add('finish');
+        this.el.pickBtn.disabled = false;
+        this.el.pickBtn.classList.add('btn-pulse');
+    }
+
+    _finishStandup() {
+        this.el.pickBtn.disabled = true;
+        this.el.pickBtn.classList.remove('btn-pulse');
+        this._showAllDone();
+    }
+
+    _startShowdown() {
+        if (fractalStrip) fractalStrip.goStrip();
+        if (fractalStrip) fractalStrip.generate();
+        this.remaining = [...this.names];
+        this.completed = [];
+        this.absent = [];
+        this.el.setupScreen.classList.add('hidden');
+        this.el.mainScreen.classList.remove('hidden');
+        this.el.doneScreen.classList.add('hidden');
+        this.el.displayName.textContent = 'Ready?';
+        this.el.displayName.className = '';
+        this._hideTimer();
+        this._renderLists();
+        this._setPickMode();
+        this.el.pickBtn.classList.add('btn-pulse');
+    }
+
+    _showSetup() {
+        this.el.setupScreen.classList.remove('hidden');
+        this.el.mainScreen.classList.add('hidden');
+        this.el.doneScreen.classList.add('hidden');
+        this._renderChips();
+        this.el.nameInput.focus();
+    }
+
+    _resetRound() {
+        if (fractalStrip) fractalStrip.goStrip();
+        if (fractalStrip) fractalStrip.generate();
+        this.remaining = [...this.names];
+        this.completed = [];
+        this.absent = [];
+        this.el.mainScreen.classList.remove('hidden');
+        this.el.doneScreen.classList.add('hidden');
+        this.el.displayName.textContent = 'Ready?';
+        this.el.displayName.className = '';
+        this._hideTimer();
+        this._renderLists();
+        this._setPickMode();
+        this.el.pickBtn.disabled = false;
+        this.el.pickBtn.classList.add('btn-pulse');
+    }
+
+    _renderLists() {
+        this.el.waitingNames.innerHTML = this.remaining
+            .map(n => `<span class="name-tag waiting">${this._esc(n)}<button class="remove-waiting" data-name="${this._esc(n)}">×</button></span>`).join('');
+        this.el.waitingNames.querySelectorAll('.remove-waiting').forEach(btn => {
+            btn.addEventListener('click', e => {
+                e.stopPropagation();
+                const name = btn.dataset.name;
+                this.remaining = this.remaining.filter(n => n !== name);
+                this.absent.push(name);
+                this._renderLists();
+                if (this.remaining.length === 0) {
+                    this.el.pickBtn.disabled = true;
+                }
+            });
+        });
+        this.el.doneNames.innerHTML = this.completed
+            .map(c => `<span class="name-tag done">${this._esc(c.name)}</span>`).join('');
+    }
+
+    async pickNext() {
+        if (this.isSpinning || this.remaining.length === 0) return;
+        this.isSpinning = true;
+        this.el.pickBtn.disabled = true;
+        this.el.pickBtn.classList.remove('btn-pulse');
+
+        const winnerIndex = Math.floor(Math.random() * this.remaining.length);
+        const winner = this.remaining[winnerIndex];
+
+        this.el.displayName.className = '';
+        this._stopTimer();
+
+        await this._spinCycle(winner);
+        await this._sleep(200);
+        await this._revealWinner(winner);
+
+        this.remaining.splice(winnerIndex, 1);
+        this.completed.push({ name: winner, seconds: 0 });
+
+        await this._sleep(200);
+        this._renderLists();
+
+        this.isSpinning = false;
+
+        if (this.remaining.length === 0) {
+            // Last person — let them speak, show Finish button
+            this._setFinishMode();
+        } else {
+            this.el.pickBtn.disabled = false;
+            this.el.pickBtn.classList.add('btn-pulse');
+        }
+    }
+
+    async _spinCycle(winner) {
+        const totalDuration = 1800;
+        const minInterval = 55;
+        const maxInterval = 500;
+        let elapsed = 0;
+        let lastShown = '';
+
+        while (elapsed < totalDuration) {
+            const progress = elapsed / totalDuration;
+            const eased = progress === 0 ? 0 : Math.pow(2, 10 * progress - 10);
+            const interval = minInterval + (maxInterval - minInterval) * eased;
+
+            let name;
+            if (elapsed + interval * 1.5 >= totalDuration) {
+                name = winner;
+            } else {
+                do {
+                    name = this.remaining[Math.floor(Math.random() * this.remaining.length)];
+                } while (name === lastShown && this.remaining.length > 1);
+            }
+
+            this.el.displayName.textContent = name;
+            this.el.displayName.classList.remove('cycling');
+            void this.el.displayName.offsetWidth;
+            this.el.displayName.classList.add('cycling');
+
+            lastShown = name;
+            await this._sleep(interval);
+            elapsed += interval;
+        }
+
+        this.el.displayName.textContent = winner;
+    }
+
+    async _revealWinner(winner) {
+        // New fractal for each pick
+        if (fractalStrip) fractalStrip.generate();
+
+        this.el.flash.classList.add('flash');
+        await this._sleep(80);
+        this.el.flash.classList.remove('flash');
+
+        this.el.displayName.textContent = winner;
+        this.el.displayName.className = 'winner-enter winner';
+
+        this.el.stage.classList.add('shake');
+        setTimeout(() => this.el.stage.classList.remove('shake'), 500);
+
+        await this._sleep(400);
+        this._startTimer();
+    }
+
+    _showAllDone() {
+        this._stopTimer();
+        this.el.mainScreen.classList.add('hidden');
+        this.el.doneScreen.classList.remove('hidden');
+
+        // Fractal goes fullscreen behind the results
+        if (fractalStrip) {
+            fractalStrip.generate();
+            fractalStrip.goFullscreen();
+        }
+
+        const fmt = (s) => {
+            const m = Math.floor(s / 60);
+            const sec = s % 60;
+            return `${m}:${sec.toString().padStart(2, '0')}`;
+        };
+
+        const totalSec = this.completed.reduce((sum, c) => sum + c.seconds, 0);
+        const avgSec = Math.round(totalSec / this.completed.length);
+        const longest = this.completed.reduce((a, b) => a.seconds >= b.seconds ? a : b);
+        const shortest = this.completed.reduce((a, b) => a.seconds <= b.seconds ? a : b);
+
+        this.el.orderList.innerHTML = this.completed.map((c, i) => {
+            let badge = '';
+            if (this.completed.length > 2) {
+                if (c === longest) badge = '<span class="badge longest">🐢 Longest</span>';
+                else if (c === shortest) badge = '<span class="badge shortest">⚡ Fastest</span>';
+            }
+            return `<li style="animation-delay: ${i * 0.1}s">
+                <span class="order-num">${i + 1}</span>
+                <span class="order-name">${this._esc(c.name)}</span>
+                <span class="order-time">${fmt(c.seconds)}</span>
+                ${badge}
+            </li>`;
+        }).join('') + (this.absent.length > 0 ? `
+            <li class="absent-divider" style="animation-delay: ${this.completed.length * 0.1}s">
+                <span class="absent-label">ABSENT</span>
+            </li>
+            ${this.absent.map((name, i) => `<li class="absent-row" style="animation-delay: ${(this.completed.length + 1 + i) * 0.1}s">
+                <span class="order-num absent-num">—</span>
+                <span class="order-name absent-name">${this._esc(name)}</span>
+            </li>`).join('')}
+        ` : '');
+
+        this.el.summaryStats.innerHTML = `
+            <div class="stat">
+                <span class="stat-value">${fmt(totalSec)}</span>
+                <span class="stat-label">Total Time</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value">${fmt(avgSec)}</span>
+                <span class="stat-label">Average</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value">${this.completed.length}</span>
+                <span class="stat-label">Speakers</span>
+            </div>
+        `;
+    }
+
+    _startTimer() {
+        this._stopTimer();
+        this.timerStart = Date.now();
+        this.el.speakingTimer.className = 'running';
+        this.el.timerValue.textContent = '0:00';
+        this.timerInterval = setInterval(() => this._tickTimer(), 200);
+    }
+
+    _tickTimer() {
+        if (!this.timerStart) return;
+        const elapsed = Math.floor((Date.now() - this.timerStart) / 1000);
+        const mins = Math.floor(elapsed / 60);
+        const secs = elapsed % 60;
+        this.el.timerValue.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+
+        if (elapsed >= 150) {
+            this.el.speakingTimer.className = 'running overtime';
+        } else if (elapsed >= 90) {
+            this.el.speakingTimer.className = 'running warning';
+        } else {
+            this.el.speakingTimer.className = 'running';
+        }
+    }
+
+    _stopTimer() {
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+        }
+        if (this.timerStart && this.completed.length > 0) {
+            const last = this.completed[this.completed.length - 1];
+            last.seconds = Math.floor((Date.now() - this.timerStart) / 1000);
+        }
+        this.timerStart = null;
+        this.el.speakingTimer.className = '';
+    }
+
+    _hideTimer() {
+        this._stopTimer();
+        this.el.speakingTimer.className = '';
+        this.el.timerValue.textContent = '0:00';
+    }
+
+    _sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    fractalStrip = new FractalStrip(document.getElementById('fractal-strip'));
+    new StandupShowdown();
+});
+</script>
+</body>
+</html>
