@@ -846,6 +846,105 @@
             100% { transform: translateY(110vh) rotate(720deg) scale(0.5); opacity: 0; }
         }
 
+        /* ═══ PERSONAL EFFECTS ═══ */
+        @keyframes personGlow {
+            0%, 100% { text-shadow: 0 0 20px var(--person-c1), 0 0 40px var(--person-c1); color: var(--person-c1); }
+            50% { text-shadow: 0 0 20px var(--person-c2), 0 0 40px var(--person-c2); color: var(--person-c2); }
+        }
+        #display-name.person-winner {
+            animation: personGlow 2s ease-in-out infinite !important;
+            font-size: clamp(2rem, 7vw, 4rem) !important;
+        }
+        @keyframes personBorder {
+            0%, 100% { border-color: var(--person-c1); box-shadow: 0 0 20px var(--person-c1); }
+            50% { border-color: var(--person-c2); box-shadow: 0 0 20px var(--person-c2); }
+        }
+        #stage.person-stage {
+            animation: personBorder 2s ease-in-out infinite !important;
+            border-width: 3px !important;
+        }
+
+        /* Pierre — elegant rotation */
+        @keyframes pierreEnter {
+            0% { transform: scale(0.5) rotate(-5deg); opacity: 0; }
+            60% { transform: scale(1.1) rotate(2deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        #display-name.pierre-enter {
+            animation: pierreEnter 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+            color: #0055A4 !important;
+        }
+
+        /* Ben — rises up like red rock */
+        @keyframes benEnter {
+            0% { transform: translateY(60px) scale(0.8); opacity: 0; }
+            70% { transform: translateY(-5px) scale(1.05); opacity: 1; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        #display-name.ben-enter {
+            animation: benEnter 0.7s cubic-bezier(0.25, 0.8, 0.25, 1) forwards !important;
+            color: #E25822 !important;
+        }
+
+        /* Daman — playful bounce */
+        @keyframes damanEnter {
+            0% { transform: translateY(-40px) scale(0.5); opacity: 0; }
+            40% { transform: translateY(10px) scale(1.1); opacity: 1; }
+            60% { transform: translateY(-8px) scale(0.95); }
+            80% { transform: translateY(4px) scale(1.02); }
+            100% { transform: translateY(0) scale(1); }
+        }
+        #display-name.daman-enter {
+            animation: damanEnter 0.8s ease-out forwards !important;
+            color: #4CAF50 !important;
+        }
+
+        /* Will — flies in from the left */
+        @keyframes willEnter {
+            0% { transform: translateX(-80vw) rotate(-10deg); opacity: 0; }
+            60% { transform: translateX(10px) rotate(2deg); opacity: 1; }
+            80% { transform: translateX(-5px) rotate(-1deg); }
+            100% { transform: translateX(0) rotate(0deg); opacity: 1; }
+        }
+        #display-name.will-enter {
+            animation: willEnter 0.9s cubic-bezier(0.25, 0.8, 0.25, 1) forwards !important;
+            color: #1E90FF !important;
+        }
+
+        /* Kyle — crystallizes in from blur */
+        @keyframes kyleEnter {
+            0% { transform: scale(1.8) rotate(8deg); opacity: 0; filter: blur(10px); }
+            60% { transform: scale(0.95) rotate(-2deg); opacity: 1; filter: blur(0); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; filter: blur(0); }
+        }
+        #display-name.kyle-enter {
+            animation: kyleEnter 0.7s ease-out forwards !important;
+            color: #00CED1 !important;
+        }
+
+        /* Brian — electric surge */
+        @keyframes brianEnter {
+            0% { transform: scaleX(0) skewX(20deg); opacity: 0; }
+            40% { transform: scaleX(1.2) skewX(-5deg); opacity: 1; }
+            60% { transform: scaleX(0.95) skewX(2deg); }
+            100% { transform: scaleX(1) skewX(0deg); opacity: 1; }
+        }
+        #display-name.brian-enter {
+            animation: brianEnter 0.7s cubic-bezier(0.25, 0.8, 0.25, 1) forwards !important;
+            color: #39FF14 !important;
+        }
+
+        /* Sunil — cosmic pulse */
+        @keyframes sunilEnter {
+            0% { transform: scale(0.1); opacity: 0; filter: brightness(3); }
+            50% { transform: scale(1.15); opacity: 1; filter: brightness(1.5); }
+            100% { transform: scale(1); opacity: 1; filter: brightness(1); }
+        }
+        #display-name.sunil-enter {
+            animation: sunilEnter 0.8s cubic-bezier(0.25, 0.8, 0.25, 1) forwards !important;
+            color: #1a0a5c !important;
+        }
+
         /* ═══ Responsive ═══ */
         @media (max-width: 600px) {
             .setup-card { padding: 24px; }
@@ -1116,7 +1215,7 @@ class FractalStrip {
 let fractalStrip = null;
 
 class StandupShowdown {
-    static DEFAULTS = ['Ben', 'Brian', 'Daman', 'Justus', 'Kyle', 'Pierre', 'Sunil', 'Sven', 'Will'];
+    static DEFAULTS = ['Ben', 'Brian', 'Daman', 'Kyle', 'Pierre', 'Sunil', 'Sven', 'Will'];
 
     constructor() {
         this.names = [];
@@ -1404,9 +1503,12 @@ class StandupShowdown {
         if (fractalStrip) fractalStrip.generate();
 
         const isSven = winner.toLowerCase() === 'sven';
+        const personalEffect = this._getPersonalEffect(winner);
 
         if (isSven) {
             await this._svenApocalypse(winner);
+        } else if (personalEffect) {
+            await this._personalReveal(winner, personalEffect);
         } else {
             this.el.flash.classList.add('flash');
             await this._sleep(80);
@@ -1422,6 +1524,84 @@ class StandupShowdown {
         }
 
         this._startTimer();
+    }
+
+    _getPersonalEffect(name) {
+        const effects = {
+            'pierre': {
+                c1: '#0055A4', c2: '#EF4135',
+                enterClass: 'pierre-enter',
+                flashColor: '#0055A4',
+            },
+            'ben': {
+                c1: '#E25822', c2: '#CC5500', // Desert red rock
+                enterClass: 'ben-enter',
+                flashColor: '#E25822',
+            },
+            'daman': {
+                c1: '#4CAF50', c2: '#FF9800', // Green + orange
+                enterClass: 'daman-enter',
+                flashColor: '#4CAF50',
+            },
+            'will': {
+                c1: '#1E90FF', c2: '#87CEEB', // Sky blue
+                enterClass: 'will-enter',
+                flashColor: '#1E90FF',
+            },
+            'kyle': {
+                c1: '#00CED1', c2: '#E0FFFF', // Icy teal
+                enterClass: 'kyle-enter',
+                flashColor: '#00CED1',
+            },
+            'brian': {
+                c1: '#39FF14', c2: '#00BFFF', // Neon green + electric blue
+                enterClass: 'brian-enter',
+                flashColor: '#39FF14',
+            },
+            'sunil': {
+                c1: '#1a0a5c', c2: '#FFD700', // Deep indigo + gold
+                enterClass: 'sunil-enter',
+                flashColor: '#1a0a5c',
+            },
+        };
+        return effects[name.toLowerCase()] || null;
+    }
+
+    async _personalReveal(winner, effect) {
+        // Single themed flash
+        this.el.flash.style.background = effect.flashColor;
+        this.el.flash.classList.add('flash');
+        await this._sleep(100);
+        this.el.flash.classList.remove('flash');
+        await this._sleep(50);
+        this.el.flash.style.background = '';
+
+        // Set themed CSS custom properties
+        const dn = this.el.displayName;
+        dn.style.setProperty('--person-c1', effect.c1);
+        dn.style.setProperty('--person-c2', effect.c2);
+
+        this.el.stage.style.setProperty('--person-c1', effect.c1);
+        this.el.stage.style.setProperty('--person-c2', effect.c2);
+
+        // Entrance animation
+        dn.textContent = winner;
+        dn.className = effect.enterClass;
+
+        // Stage glow
+        this.el.stage.classList.add('person-stage');
+
+        await this._sleep(700);
+
+        // Settle into winner glow
+        dn.className = effect.winnerClass || 'person-winner';
+
+        // Clean up stage effect after a few seconds
+        setTimeout(() => {
+            this.el.stage.classList.remove('person-stage');
+        }, 4000);
+
+        await this._sleep(300);
     }
 
     async _svenApocalypse(winner) {
