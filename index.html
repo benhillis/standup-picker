@@ -1530,7 +1530,12 @@ class StandupShowdown {
         this.el.displayName.className = '';
         this._stopTimer();
 
-        await this._spinCycle(winner);
+        if (this.remaining.length === 1) {
+            // Last person — skip the spin
+            this.el.displayName.textContent = winner;
+        } else {
+            await this._spinCycle(winner);
+        }
         await this._sleep(200);
         await this._revealWinner(winner);
 
