@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Linux on Windows — Standup Showdown</title>
+    <title>Linux on Windows — Daily Standup</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐧</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -45,6 +45,8 @@
 
         /* ═══ App ═══ */
         #app {
+            position: relative;
+            z-index: 1;
             height: 100vh;
             display: flex;
             flex-direction: column;
@@ -235,6 +237,7 @@
         #stage {
             width: 100%;
             max-width: 720px;
+            min-height: 220px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -482,26 +485,21 @@
             animation: none !important;
         }
 
-        /* ═══ Fractal Strip ═══ */
+        /* ═══ Fractal Background ═══ */
         #fractal-strip {
-            display: block;
-            width: 100%;
-            max-width: 720px;
-            border-radius: 6px;
-            overflow: hidden;
-            flex: 1;
-            min-height: 0;
-            opacity: 0.7;
-            transition: all 0.6s ease-in-out;
-        }
-        #fractal-strip.fullscreen {
             position: fixed;
             inset: 0;
-            max-width: none;
-            border-radius: 0;
-            z-index: -1;
-            opacity: 0.35;
-            filter: brightness(0.6) saturate(1.3);
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.55;
+            filter: brightness(0.7) saturate(1.4);
+            transition: opacity 0.8s ease, filter 0.8s ease;
+        }
+        #fractal-strip.bright {
+            opacity: 0.7;
+            filter: brightness(0.85) saturate(1.6);
         }
 
         /* ═══ Controls ═══ */
@@ -695,207 +693,24 @@
             z-index: 100;
         }
 
-        /* ═══ SVEN MODE ═══ */
-        #sven-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 999;
-            pointer-events: none;
-            opacity: 0;
-        }
-        #sven-overlay.active {
-            opacity: 1;
-        }
-
-        @keyframes svenShake {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            5% { transform: translate(-12px, -8px) rotate(-2deg); }
-            10% { transform: translate(12px, 6px) rotate(2deg); }
-            15% { transform: translate(-10px, 10px) rotate(-3deg); }
-            20% { transform: translate(8px, -12px) rotate(1deg); }
-            25% { transform: translate(-14px, 4px) rotate(-2deg); }
-            30% { transform: translate(10px, -6px) rotate(3deg); }
-            35% { transform: translate(-6px, 14px) rotate(-1deg); }
-            40% { transform: translate(14px, -4px) rotate(2deg); }
-            45% { transform: translate(-8px, -10px) rotate(-3deg); }
-            50% { transform: translate(6px, 12px) rotate(1deg); }
-            55% { transform: translate(-12px, -6px) rotate(-2deg); }
-            60% { transform: translate(10px, 8px) rotate(3deg); }
-            65% { transform: translate(-4px, -14px) rotate(-1deg); }
-            70% { transform: translate(12px, 4px) rotate(2deg); }
-            75% { transform: translate(-10px, 10px) rotate(-3deg); }
-            80% { transform: translate(8px, -8px) rotate(1deg); }
-            85% { transform: translate(-6px, 6px) rotate(-2deg); }
-            90% { transform: translate(4px, -4px) rotate(1deg); }
-            95% { transform: translate(-2px, 2px) rotate(0deg); }
-        }
-        .sven-shake {
-            animation: svenShake 2s ease-out !important;
-        }
-
-        @keyframes svenSpin {
-            0% { transform: scale(0.2) rotate(0deg); opacity: 0; }
-            20% { transform: scale(1.5) rotate(720deg); opacity: 1; }
-            40% { transform: scale(0.8) rotate(1080deg); }
-            50% { transform: scale(1.8) rotate(1440deg); }
-            60% { transform: scale(1.0) rotate(1800deg); }
-            75% { transform: scale(1.3) rotate(2160deg); }
-            85% { transform: scale(1.0) rotate(2520deg); }
-            100% { transform: scale(1.0) rotate(2880deg); }
-        }
-        #display-name.sven-spin {
-            animation: svenSpin 3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards !important;
-            color: #ff0000 !important;
-        }
-
-        @keyframes svenGlow {
-            0% { text-shadow: 0 0 20px #ff0000, 0 0 40px #ff0000; color: #ff0000; }
-            16% { text-shadow: 0 0 20px #ff8800, 0 0 40px #ff8800; color: #ff8800; }
-            33% { text-shadow: 0 0 20px #ffff00, 0 0 40px #ffff00; color: #ffff00; }
-            50% { text-shadow: 0 0 20px #00ff00, 0 0 40px #00ff00; color: #00ff00; }
-            66% { text-shadow: 0 0 20px #0088ff, 0 0 40px #0088ff; color: #0088ff; }
-            83% { text-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff; color: #ff00ff; }
-            100% { text-shadow: 0 0 20px #ff0000, 0 0 40px #ff0000; color: #ff0000; }
-        }
-        #display-name.sven-winner {
-            animation: svenGlow 0.4s linear infinite !important;
-            font-size: clamp(2.5rem, 8vw, 5rem) !important;
-        }
-
-        @keyframes svenStrobe {
-            0% { background: #ff0000; opacity: 0.5; }
-            14% { background: #ff8800; opacity: 0.4; }
-            28% { background: #ffff00; opacity: 0.5; }
-            42% { background: #00ff00; opacity: 0.4; }
-            57% { background: #0088ff; opacity: 0.5; }
-            71% { background: #ff00ff; opacity: 0.4; }
-            85% { background: #ff0000; opacity: 0.5; }
-            100% { background: transparent; opacity: 0; }
-        }
-
-        @keyframes svenBorder {
-            0%, 100% { border-color: #ff0000; box-shadow: 0 0 30px #ff0000, inset 0 0 30px rgba(255,0,0,0.1); }
-            16% { border-color: #ff8800; box-shadow: 0 0 30px #ff8800, inset 0 0 30px rgba(255,136,0,0.1); }
-            33% { border-color: #ffff00; box-shadow: 0 0 30px #ffff00, inset 0 0 30px rgba(255,255,0,0.1); }
-            50% { border-color: #00ff00; box-shadow: 0 0 30px #00ff00, inset 0 0 30px rgba(0,255,0,0.1); }
-            66% { border-color: #0088ff; box-shadow: 0 0 30px #0088ff, inset 0 0 30px rgba(0,136,255,0.1); }
-            83% { border-color: #ff00ff; box-shadow: 0 0 30px #ff00ff, inset 0 0 30px rgba(255,0,255,0.1); }
-        }
-        #stage.sven-stage {
-            animation: svenBorder 0.6s linear infinite !important;
-            border-width: 4px !important;
-        }
-
-        @keyframes svenBarrelRoll {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        #app.sven-roll {
-            animation: svenBarrelRoll 1.2s ease-in-out;
-            transform-origin: center center;
-        }
-        @keyframes svenDoubleRoll {
-            0% { transform: rotate(0deg) scale(1); }
-            25% { transform: rotate(180deg) scale(0.6); }
-            50% { transform: rotate(360deg) scale(1); }
-            75% { transform: rotate(540deg) scale(0.6); }
-            100% { transform: rotate(720deg) scale(1); }
-        }
-        #app.sven-double-roll {
-            animation: svenDoubleRoll 2s ease-in-out;
-            transform-origin: center center;
-        }
-
-        @keyframes svenInvert {
-            0%, 100% { filter: none; }
-            10%, 90% { filter: invert(1) hue-rotate(180deg); }
-        }
-        #app.sven-invert {
-            animation: svenInvert 3s ease-in-out;
-        }
-
-        @keyframes svenZoomPanic {
-            0% { transform: scale(1) rotate(0deg); }
-            15% { transform: scale(3) rotate(5deg); }
-            30% { transform: scale(0.3) rotate(-10deg); }
-            45% { transform: scale(2.5) rotate(8deg); }
-            60% { transform: scale(0.5) rotate(-5deg); }
-            75% { transform: scale(1.8) rotate(3deg); }
-            90% { transform: scale(0.8) rotate(-1deg); }
-            100% { transform: scale(1) rotate(0deg); }
-        }
-        #app.sven-zoom-panic {
-            animation: svenZoomPanic 2.5s ease-in-out;
-            transform-origin: center center;
-        }
-
-        @keyframes svenBounceIn {
-            0% { transform: translateY(-120vh); }
-            30% { transform: translateY(30px); }
-            45% { transform: translateY(-80px); }
-            55% { transform: translateY(15px); }
-            65% { transform: translateY(-30px); }
-            75% { transform: translateY(5px); }
-            85% { transform: translateY(-10px); }
-            100% { transform: translateY(0); }
-        }
-        #display-name.sven-bounce {
-            animation: svenBounceIn 2s cubic-bezier(0.2, 0, 0.4, 1) forwards !important;
-            color: #ff0000 !important;
-            font-size: clamp(2.5rem, 8vw, 5rem) !important;
-        }
-
-        @keyframes svenGlitch {
-            0%, 100% { transform: none; text-shadow: none; }
-            5% { transform: translate(-3px, 2px) skewX(5deg); text-shadow: 3px 0 #ff0000, -3px 0 #00ffff; }
-            10% { transform: translate(3px, -2px) skewX(-3deg); text-shadow: -3px 0 #ff0000, 3px 0 #00ffff; }
-            15% { transform: none; text-shadow: none; }
-            20% { transform: translate(-2px, 3px) skewX(2deg); text-shadow: 2px 0 #ff00ff, -2px 0 #00ff00; }
-            25% { transform: translate(2px, -1px) skewX(-5deg); text-shadow: -2px 0 #ffff00, 2px 0 #ff0000; }
-            30%, 50% { transform: none; text-shadow: none; }
-            55% { transform: translate(4px, -3px) skewX(8deg); text-shadow: 4px 0 #ff0000, -4px 0 #00ffff; }
-            60% { transform: translate(-4px, 3px) skewX(-8deg); text-shadow: -4px 0 #ff00ff, 4px 0 #ffff00; }
-            65%, 80% { transform: none; text-shadow: none; }
-            85% { transform: translate(2px, -4px) skewX(3deg); text-shadow: 3px 0 #00ff00, -3px 0 #ff0000; }
-            90% { transform: translate(-3px, 2px) skewX(-4deg); text-shadow: -3px 0 #ff0000, 3px 0 #00ffff; }
-        }
-        #display-name.sven-glitch {
-            animation: svenGlitch 0.3s steps(1) infinite !important;
-            color: #fff !important;
-            font-size: clamp(2.5rem, 8vw, 5rem) !important;
-        }
-
-        .sven-emoji {
-            position: fixed;
-            font-size: 2.5rem;
-            z-index: 1001;
-            pointer-events: none;
-            animation: svenEmojiFall linear forwards;
-        }
-        @keyframes svenEmojiFall {
-            0% { transform: translateY(-100px) rotate(0deg) scale(1); opacity: 1; }
-            80% { opacity: 1; }
-            100% { transform: translateY(110vh) rotate(720deg) scale(0.5); opacity: 0; }
-        }
-
-        /* ═══ PERSONAL EFFECTS ═══ */
-        @keyframes personGlow {
+        /* ═══ WINNER EFFECTS ═══ */
+        @keyframes winnerGlow {
             0%, 100% { text-shadow: 0 0 30px var(--person-c1), 0 0 60px var(--person-c1), 0 0 90px var(--person-c1); color: var(--person-c1); }
             50% { text-shadow: 0 0 30px var(--person-c2), 0 0 60px var(--person-c2), 0 0 90px var(--person-c2); color: var(--person-c2); }
         }
         #display-name.person-winner {
-            animation: personGlow 1.5s ease-in-out infinite !important;
+            animation: winnerGlow 1.5s ease-in-out infinite !important;
             font-size: clamp(2.5rem, 8vw, 5rem) !important;
         }
-        @keyframes personBorder {
+        @keyframes winnerBorder {
             0%, 100% { border-color: var(--person-c1); box-shadow: 0 0 30px var(--person-c1), inset 0 0 20px rgba(255,255,255,0.05); }
             50% { border-color: var(--person-c2); box-shadow: 0 0 30px var(--person-c2), inset 0 0 20px rgba(255,255,255,0.05); }
         }
         #stage.person-stage {
-            animation: personBorder 1.5s ease-in-out infinite !important;
+            animation: winnerBorder 1.5s ease-in-out infinite !important;
             border-width: 3px !important;
         }
-        @keyframes personShake {
+        @keyframes winnerShake {
             0%, 100% { transform: translate(0, 0); }
             10% { transform: translate(-6px, -4px); }
             20% { transform: translate(6px, 3px); }
@@ -907,102 +722,23 @@
             80% { transform: translate(3px, -2px); }
             90% { transform: translate(-2px, 1px); }
         }
-        .person-shake {
-            animation: personShake 0.6s ease-out !important;
+        .winner-shake {
+            animation: winnerShake 0.6s ease-out !important;
         }
 
-        /* Pierre — elegant rotation */
-        @keyframes pierreEnter {
-            0% { transform: scale(0.2) rotate(-15deg); opacity: 0; }
-            50% { transform: scale(1.3) rotate(5deg); opacity: 1; }
-            75% { transform: scale(0.9) rotate(-2deg); }
-            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        /* Universal enter — dramatic slam */
+        @keyframes winnerEnter {
+            0% { transform: translateY(-200vh) scale(2.5) rotate(-15deg); opacity: 0; }
+            25% { transform: translateY(20px) scale(1.6) rotate(5deg); opacity: 1; filter: brightness(2.5); }
+            35% { transform: translateY(-40px) scale(0.7) rotate(-3deg); filter: brightness(1.5); }
+            50% { transform: translateY(10px) scale(1.3) rotate(2deg); filter: brightness(1.2); }
+            65% { transform: translateY(-15px) scale(0.9) rotate(-1deg); filter: brightness(1); }
+            80% { transform: translateY(5px) scale(1.08) rotate(0deg); }
+            100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; filter: brightness(1); }
         }
-        #display-name.pierre-enter {
-            animation: pierreEnter 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
-            color: #0055A4 !important;
-            font-size: clamp(2.5rem, 8vw, 5rem) !important;
-        }
-
-        /* Ben — rises up like a monolith */
-        @keyframes benEnter {
-            0% { transform: translateY(120px) scale(0.5); opacity: 0; }
-            60% { transform: translateY(-15px) scale(1.15); opacity: 1; }
-            80% { transform: translateY(5px) scale(0.95); }
-            100% { transform: translateY(0) scale(1); opacity: 1; }
-        }
-        #display-name.ben-enter {
-            animation: benEnter 0.9s cubic-bezier(0.25, 0.8, 0.25, 1) forwards !important;
-            color: #E25822 !important;
-            font-size: clamp(2.5rem, 8vw, 5rem) !important;
-        }
-
-        /* Daman — playful bounce */
-        @keyframes damanEnter {
-            0% { transform: translateY(-100px) scale(0.3); opacity: 0; }
-            30% { transform: translateY(20px) scale(1.2); opacity: 1; }
-            50% { transform: translateY(-30px) scale(0.9); }
-            65% { transform: translateY(12px) scale(1.08); }
-            80% { transform: translateY(-6px) scale(0.97); }
-            100% { transform: translateY(0) scale(1); }
-        }
-        #display-name.daman-enter {
-            animation: damanEnter 1s ease-out forwards !important;
-            color: #4CAF50 !important;
-            font-size: clamp(2.5rem, 8vw, 5rem) !important;
-        }
-
-        /* Will — flies in from the left */
-        @keyframes willEnter {
-            0% { transform: translateX(-100vw) rotate(-15deg) scale(0.5); opacity: 0; }
-            50% { transform: translateX(20px) rotate(4deg) scale(1.1); opacity: 1; }
-            70% { transform: translateX(-10px) rotate(-2deg) scale(0.95); }
-            100% { transform: translateX(0) rotate(0deg) scale(1); opacity: 1; }
-        }
-        #display-name.will-enter {
-            animation: willEnter 1s cubic-bezier(0.25, 0.8, 0.25, 1) forwards !important;
-            color: #1E90FF !important;
-            font-size: clamp(2.5rem, 8vw, 5rem) !important;
-        }
-
-        /* Kyle — crystallizes in from blur */
-        @keyframes kyleEnter {
-            0% { transform: scale(2.5) rotate(12deg); opacity: 0; filter: blur(20px); }
-            50% { transform: scale(0.9) rotate(-4deg); opacity: 1; filter: blur(2px); }
-            75% { transform: scale(1.1) rotate(1deg); filter: blur(0); }
-            100% { transform: scale(1) rotate(0deg); opacity: 1; filter: blur(0); }
-        }
-        #display-name.kyle-enter {
-            animation: kyleEnter 0.9s ease-out forwards !important;
-            color: #00CED1 !important;
-            font-size: clamp(2.5rem, 8vw, 5rem) !important;
-        }
-
-        /* Brian — electric surge */
-        @keyframes brianEnter {
-            0% { transform: scaleX(0) skewX(30deg); opacity: 0; }
-            30% { transform: scaleX(1.4) skewX(-10deg); opacity: 1; }
-            50% { transform: scaleX(0.85) skewX(6deg); }
-            70% { transform: scaleX(1.1) skewX(-3deg); }
-            100% { transform: scaleX(1) skewX(0deg); opacity: 1; }
-        }
-        #display-name.brian-enter {
-            animation: brianEnter 0.8s cubic-bezier(0.25, 0.8, 0.25, 1) forwards !important;
-            color: #39FF14 !important;
-            font-size: clamp(2.5rem, 8vw, 5rem) !important;
-        }
-
-        /* Sunil — cosmic pulse */
-        @keyframes sunilEnter {
-            0% { transform: scale(0.05); opacity: 0; filter: brightness(4); }
-            40% { transform: scale(1.4); opacity: 1; filter: brightness(2); }
-            60% { transform: scale(0.85); filter: brightness(1.2); }
-            80% { transform: scale(1.1); filter: brightness(1); }
-            100% { transform: scale(1); opacity: 1; filter: brightness(1); }
-        }
-        #display-name.sunil-enter {
-            animation: sunilEnter 1s cubic-bezier(0.25, 0.8, 0.25, 1) forwards !important;
-            color: #1a0a5c !important;
+        #display-name.winner-enter {
+            animation: winnerEnter 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+            color: var(--person-c1) !important;
             font-size: clamp(2.5rem, 8vw, 5rem) !important;
         }
 
@@ -1021,9 +757,8 @@
 <body>
 
 <div id="flash-overlay"></div>
-<div id="sven-overlay"></div>
-
 <div id="app">
+    <canvas id="fractal-strip"></canvas>
     <header>
         <h1>LINUX ON WINDOWS</h1>
         <p class="subtitle">Daily Standup</p>
@@ -1039,7 +774,7 @@
             </div>
             <div id="name-chips"></div>
             <div class="setup-actions">
-                <button class="btn btn-start" id="start-btn" disabled>⚔️ BEGIN THE SHOWDOWN ⚔️</button>
+                <button class="btn btn-start" id="start-btn" disabled>⚔️ LET'S GO ⚔️</button>
                 <button class="btn-ghost" id="defaults-btn">↩ Reset to Defaults</button>
             </div>
             <p class="setup-hint">Add at least 2 team members to begin. Press Enter to add quickly.</p>
@@ -1074,8 +809,6 @@
             <button class="btn-ghost" id="reset-btn">🔄 New Round</button>
             <button class="btn-ghost" id="edit-btn">✏️ Edit Team</button>
         </div>
-
-        <canvas id="fractal-strip"></canvas>
     </div>
 
     <!-- All Done Screen -->
@@ -1222,19 +955,25 @@ class FractalStrip {
         this.hue = Math.random();
         this.startTime = performance.now() / 1000;
 
-        // Defer sizing until after layout has painted
-        requestAnimationFrame(() => {
-            const rect = this.canvas.getBoundingClientRect();
-            if (rect.width === 0 || rect.height === 0) return;
-            this.canvas.width = Math.round(rect.width * window.devicePixelRatio);
-            this.canvas.height = Math.round(rect.height * window.devicePixelRatio);
-            this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+        this._resizeCanvas();
 
-            if (!this._running) {
-                this._running = true;
-                this._animate();
-            }
-        });
+        if (!this._running) {
+            this._running = true;
+            this._animate();
+        }
+    }
+
+    _resizeCanvas() {
+        if (!this.gl) return;
+        // Cap resolution for performance on full-screen rendering
+        const dpr = Math.min(window.devicePixelRatio, 1.25);
+        const w = Math.round(window.innerWidth * dpr);
+        const h = Math.round(window.innerHeight * dpr);
+        if (this.canvas.width !== w || this.canvas.height !== h) {
+            this.canvas.width = w;
+            this.canvas.height = h;
+            this.gl.viewport(0, 0, w, h);
+        }
     }
 
     _animate() {
@@ -1262,18 +1001,26 @@ class FractalStrip {
         requestAnimationFrame(() => this._animate());
     }
 
-    goFullscreen() {
-        this.canvas.classList.add('fullscreen');
-        // Re-size for full window after the CSS transition kicks in
-        requestAnimationFrame(() => {
-            this.canvas.width = Math.round(window.innerWidth * window.devicePixelRatio);
-            this.canvas.height = Math.round(window.innerHeight * window.devicePixelRatio);
-            if (this.gl) this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
-        });
-    }
-
-    goStrip() {
-        this.canvas.classList.remove('fullscreen');
+    // Derive accent colors from the same palette logic as the shader
+    getAccentColors() {
+        const h = this.hue;
+        const palette = (t, hue) => {
+            const a = 0.5, b = 0.5;
+            const TAU = Math.PI * 2;
+            return [
+                a + b * Math.cos(TAU * (t + hue)),
+                a + b * Math.cos(TAU * (t + hue + 0.33)),
+                a + b * Math.cos(TAU * (t + hue + 0.67)),
+            ];
+        };
+        const toHex = ([r, g, b]) => {
+            const clamp = v => Math.max(0, Math.min(255, Math.round(v * 255)));
+            return `#${clamp(r).toString(16).padStart(2, '0')}${clamp(g).toString(16).padStart(2, '0')}${clamp(b).toString(16).padStart(2, '0')}`;
+        };
+        // Primary: bright version at t=0.6, Secondary: shifted hue at t=0.3
+        const c1 = palette(0.6, h).map(v => Math.min(1, v * 1.3 + 0.1));
+        const c2 = palette(0.3, h + 0.15).map(v => Math.min(1, v * 1.3 + 0.1));
+        return [toHex(c1), toHex(c2)];
     }
 }
 
@@ -1438,8 +1185,10 @@ class StandupShowdown {
     }
 
     _startShowdown() {
-        if (fractalStrip) fractalStrip.goStrip();
-        if (fractalStrip) fractalStrip.generate();
+        if (fractalStrip) {
+            fractalStrip.canvas.classList.remove('bright');
+            fractalStrip.generate();
+        }
         this.remaining = [...this.names];
         this.completed = [];
         this.absent = [];
@@ -1448,6 +1197,11 @@ class StandupShowdown {
         this.el.doneScreen.classList.add('hidden');
         this.el.displayName.textContent = 'Ready?';
         this.el.displayName.className = '';
+        this.el.displayName.style.removeProperty('--person-c1');
+        this.el.displayName.style.removeProperty('--person-c2');
+        this.el.stage.style.removeProperty('--person-c1');
+        this.el.stage.style.removeProperty('--person-c2');
+        this.el.stage.classList.remove('person-stage', 'winner-shake');
         this._hideTimer();
         this._renderLists();
         this._setPickMode();
@@ -1463,8 +1217,10 @@ class StandupShowdown {
     }
 
     _resetRound() {
-        if (fractalStrip) fractalStrip.goStrip();
-        if (fractalStrip) fractalStrip.generate();
+        if (fractalStrip) {
+            fractalStrip.canvas.classList.remove('bright');
+            fractalStrip.generate();
+        }
         this.remaining = [...this.names];
         this.completed = [];
         this.absent = [];
@@ -1472,6 +1228,11 @@ class StandupShowdown {
         this.el.doneScreen.classList.add('hidden');
         this.el.displayName.textContent = 'Ready?';
         this.el.displayName.className = '';
+        this.el.displayName.style.removeProperty('--person-c1');
+        this.el.displayName.style.removeProperty('--person-c2');
+        this.el.stage.style.removeProperty('--person-c1');
+        this.el.stage.style.removeProperty('--person-c2');
+        this.el.stage.classList.remove('person-stage', 'winner-shake');
         this._hideTimer();
         this._renderLists();
         this._setPickMode();
@@ -1591,78 +1352,16 @@ class StandupShowdown {
     }
 
     async _revealWinner(winner) {
-        // New fractal for each pick
+        // New fractal for each pick — colors derive from it
         if (fractalStrip) fractalStrip.generate();
 
-        const isSven = winner.toLowerCase() === 'sven';
-        const personalEffect = this._getPersonalEffect(winner);
+        const [c1, c2] = fractalStrip
+            ? fractalStrip.getAccentColors()
+            : ['#00e8ff', '#c850ff'];
 
-        if (isSven) {
-            await this._svenApocalypse(winner);
-        } else if (personalEffect) {
-            await this._personalReveal(winner, personalEffect);
-        } else {
-            this.el.flash.classList.add('flash');
-            await this._sleep(80);
-            this.el.flash.classList.remove('flash');
-
-            this.el.displayName.textContent = winner;
-            this.el.displayName.className = 'winner-enter winner';
-
-            this.el.stage.classList.add('shake');
-            setTimeout(() => this.el.stage.classList.remove('shake'), 500);
-
-            await this._sleep(400);
-        }
-
-        this._startTimer();
-    }
-
-    _getPersonalEffect(name) {
-        const effects = {
-            'pierre': {
-                c1: '#0055A4', c2: '#EF4135',
-                enterClass: 'pierre-enter',
-                flashColor: '#0055A4',
-            },
-            'ben': {
-                c1: '#E25822', c2: '#CC5500', // Desert red rock
-                enterClass: 'ben-enter',
-                flashColor: '#E25822',
-            },
-            'daman': {
-                c1: '#4CAF50', c2: '#FF9800', // Green + orange
-                enterClass: 'daman-enter',
-                flashColor: '#4CAF50',
-            },
-            'will': {
-                c1: '#1E90FF', c2: '#87CEEB', // Sky blue
-                enterClass: 'will-enter',
-                flashColor: '#1E90FF',
-            },
-            'kyle': {
-                c1: '#00CED1', c2: '#E0FFFF', // Icy teal
-                enterClass: 'kyle-enter',
-                flashColor: '#00CED1',
-            },
-            'brian': {
-                c1: '#39FF14', c2: '#00BFFF', // Neon green + electric blue
-                enterClass: 'brian-enter',
-                flashColor: '#39FF14',
-            },
-            'sunil': {
-                c1: '#1a0a5c', c2: '#FFD700', // Deep indigo + gold
-                enterClass: 'sunil-enter',
-                flashColor: '#1a0a5c',
-            },
-        };
-        return effects[name.toLowerCase()] || null;
-    }
-
-    async _personalReveal(winner, effect) {
         // Triple themed flash
         for (let i = 0; i < 3; i++) {
-            this.el.flash.style.background = effect.flashColor;
+            this.el.flash.style.background = c1;
             this.el.flash.classList.add('flash');
             await this._sleep(70);
             this.el.flash.classList.remove('flash');
@@ -1670,261 +1369,44 @@ class StandupShowdown {
         }
         this.el.flash.style.background = '';
 
-        // Set themed CSS custom properties
+        // Set fractal-derived colors
         const dn = this.el.displayName;
-        dn.style.setProperty('--person-c1', effect.c1);
-        dn.style.setProperty('--person-c2', effect.c2);
+        dn.style.setProperty('--person-c1', c1);
+        dn.style.setProperty('--person-c2', c2);
+        this.el.stage.style.setProperty('--person-c1', c1);
+        this.el.stage.style.setProperty('--person-c2', c2);
 
-        this.el.stage.style.setProperty('--person-c1', effect.c1);
-        this.el.stage.style.setProperty('--person-c2', effect.c2);
-
-        // Entrance animation + stage shake
+        // Entrance animation
         dn.textContent = winner;
-        dn.className = effect.enterClass;
-
-        this.el.stage.classList.add('person-shake');
+        dn.className = 'winner-enter';
+        this.el.stage.classList.add('winner-shake');
         this.el.stage.classList.add('person-stage');
 
-        await this._sleep(900);
+        await this._sleep(1200);
 
         // Settle into winner glow
-        dn.className = effect.winnerClass || 'person-winner';
-        this.el.stage.classList.remove('person-shake');
+        dn.className = 'person-winner';
+        this.el.stage.classList.remove('winner-shake');
 
-        // Clean up stage effect after a few seconds
         setTimeout(() => {
             this.el.stage.classList.remove('person-stage');
         }, 6000);
 
         await this._sleep(300);
+
+        this._startTimer();
     }
 
-    async _svenApocalypse(winner) {
-        const variants = [
-            () => this._svenClassic(winner),
-            () => this._svenGlitchHell(winner),
-            () => this._svenZoomPanic(winner),
-            () => this._svenInvertedReality(winner),
-            () => this._svenBounceQuake(winner),
-        ];
-        const pick = variants[Math.floor(Math.random() * variants.length)];
-        await pick();
-    }
-
-    // Variant 1: The Original — barrel roll + spin + rainbow
-    async _svenClassic(winner) {
-        const app = document.getElementById('app');
-
-        for (let i = 0; i < 6; i++) {
-            const colors = ['#ff0000','#ff8800','#ffff00','#00ff00','#0088ff','#ff00ff'];
-            this.el.flash.style.background = colors[i % colors.length];
-            this.el.flash.classList.add('flash');
-            await this._sleep(60);
-            this.el.flash.classList.remove('flash');
-            await this._sleep(40);
-        }
-        this.el.flash.style.background = '';
-
-        this.el.displayName.textContent = winner;
-        this.el.displayName.className = 'sven-spin';
-        this.el.stage.classList.add('sven-shake');
-        this._startEmojiRain();
-
-        await this._sleep(800);
-        app.classList.add('sven-roll');
-        await this._sleep(1200);
-        app.classList.remove('sven-roll');
-
-        this.el.displayName.className = 'sven-winner';
-        this.el.stage.classList.remove('sven-shake');
-        this.el.stage.classList.add('sven-stage');
-
-        await this._sleep(500);
-        setTimeout(() => {
-            this.el.stage.classList.remove('sven-stage');
-            this._stopEmojiRain();
-        }, 8000);
-    }
-
-    // Variant 2: Glitch horror — digital corruption + inverted colors
-    async _svenGlitchHell(winner) {
-        const app = document.getElementById('app');
-
-        // Rapid white flashes
-        for (let i = 0; i < 10; i++) {
-            this.el.flash.style.background = i % 2 === 0 ? '#ffffff' : '#000000';
-            this.el.flash.classList.add('flash');
-            await this._sleep(30);
-            this.el.flash.classList.remove('flash');
-            await this._sleep(20);
-        }
-        this.el.flash.style.background = '';
-
-        this.el.displayName.textContent = winner;
-        this.el.displayName.className = 'sven-glitch';
-        this.el.stage.classList.add('sven-shake');
-
-        this._startEmojiRain(['💀','☠️','👾','🤖','⚡','🪦','🫠','💻','🐛','🦠']);
-
-        await this._sleep(600);
-        app.classList.add('sven-invert');
-        await this._sleep(3000);
-        app.classList.remove('sven-invert');
-
-        this.el.displayName.className = 'sven-winner';
-        this.el.stage.classList.remove('sven-shake');
-        this.el.stage.classList.add('sven-stage');
-
-        await this._sleep(500);
-        setTimeout(() => {
-            this.el.stage.classList.remove('sven-stage');
-            this._stopEmojiRain();
-        }, 8000);
-    }
-
-    // Variant 3: Zoom panic — scale in/out wildly
-    async _svenZoomPanic(winner) {
-        const app = document.getElementById('app');
-
-        // Strobe
-        for (let i = 0; i < 8; i++) {
-            const colors = ['#ff0000','#ffffff','#ff0000','#ffff00','#ff0000','#00ffff','#ff00ff','#ff0000'];
-            this.el.flash.style.background = colors[i];
-            this.el.flash.classList.add('flash');
-            await this._sleep(40);
-            this.el.flash.classList.remove('flash');
-            await this._sleep(30);
-        }
-        this.el.flash.style.background = '';
-
-        this.el.displayName.textContent = winner;
-        this.el.displayName.className = 'sven-spin';
-        this.el.stage.classList.add('sven-shake');
-
-        this._startEmojiRain(['🚨','😵‍💫','🌀','🎪','🤡','🫨','🤯','💥','⚠️','🔥']);
-
-        await this._sleep(600);
-        app.classList.add('sven-zoom-panic');
-        await this._sleep(2500);
-        app.classList.remove('sven-zoom-panic');
-
-        this.el.displayName.className = 'sven-winner';
-        this.el.stage.classList.remove('sven-shake');
-        this.el.stage.classList.add('sven-stage');
-
-        await this._sleep(500);
-        setTimeout(() => {
-            this.el.stage.classList.remove('sven-stage');
-            this._stopEmojiRain();
-        }, 8000);
-    }
-
-    // Variant 4: Inverted reality — colors flip, double barrel roll
-    async _svenInvertedReality(winner) {
-        const app = document.getElementById('app');
-
-        app.classList.add('sven-invert');
-        await this._sleep(300);
-
-        for (let i = 0; i < 4; i++) {
-            this.el.flash.style.background = '#00ffff';
-            this.el.flash.classList.add('flash');
-            await this._sleep(100);
-            this.el.flash.classList.remove('flash');
-            await this._sleep(60);
-        }
-        this.el.flash.style.background = '';
-
-        this.el.displayName.textContent = winner;
-        this.el.displayName.className = 'sven-spin';
-        this.el.stage.classList.add('sven-shake');
-
-        this._startEmojiRain(['🙃','🔮','👁️','🌈','✨','🪩','🎭','👻','🫥','🌚']);
-
-        await this._sleep(800);
-        app.classList.remove('sven-invert');
-        app.classList.add('sven-double-roll');
-        await this._sleep(2000);
-        app.classList.remove('sven-double-roll');
-
-        this.el.displayName.className = 'sven-winner';
-        this.el.stage.classList.remove('sven-shake');
-        this.el.stage.classList.add('sven-stage');
-
-        await this._sleep(500);
-        setTimeout(() => {
-            this.el.stage.classList.remove('sven-stage');
-            this._stopEmojiRain();
-        }, 8000);
-    }
-
-    // Variant 5: Bounce quake — name drops in from above, earthquake
-    async _svenBounceQuake(winner) {
-        // No flash — just sudden silence then BOOM
-        await this._sleep(400);
-
-        this.el.displayName.textContent = winner;
-        this.el.displayName.className = 'sven-bounce';
-        this.el.stage.classList.add('sven-shake');
-
-        await this._sleep(300);
-
-        // Delayed barrage of flashes
-        for (let i = 0; i < 12; i++) {
-            const colors = ['#ff0000','#ff4400','#ff8800','#ffcc00','#ff0000','#ff0066','#ff0000','#ff8800','#ff0000','#ffcc00','#ff0000','#ff0044'];
-            this.el.flash.style.background = colors[i];
-            this.el.flash.classList.add('flash');
-            await this._sleep(50);
-            this.el.flash.classList.remove('flash');
-            await this._sleep(50);
-        }
-        this.el.flash.style.background = '';
-
-        this._startEmojiRain(['🔥','🌋','💣','💥','☄️','🧨','⚡','🔥','💀','😤']);
-
-        await this._sleep(800);
-
-        this.el.displayName.className = 'sven-winner';
-        this.el.stage.classList.remove('sven-shake');
-        this.el.stage.classList.add('sven-stage');
-
-        await this._sleep(500);
-        setTimeout(() => {
-            this.el.stage.classList.remove('sven-stage');
-            this._stopEmojiRain();
-        }, 8000);
-    }
-
-    _startEmojiRain(customEmojis) {
-        const emojis = customEmojis || ['🚨','🔥','💀','😱','🤮','💩','⚠️','🙃','👹','☠️','🌋','😈'];
-        this._emojiInterval = setInterval(() => {
-            const el = document.createElement('div');
-            el.className = 'sven-emoji';
-            el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-            el.style.left = Math.random() * 100 + 'vw';
-            el.style.top = '-100px';
-            el.style.animationDuration = (2 + Math.random() * 3) + 's';
-            document.body.appendChild(el);
-            el.addEventListener('animationend', () => el.remove());
-        }, 120);
-    }
-
-    _stopEmojiRain() {
-        if (this._emojiInterval) {
-            clearInterval(this._emojiInterval);
-            this._emojiInterval = null;
-        }
-    }
 
     _showAllDone() {
         this._stopTimer();
         this.el.mainScreen.classList.add('hidden');
         this.el.doneScreen.classList.remove('hidden');
 
-        // Fractal goes fullscreen behind the results
+        // Brighten fractal for the results screen
         if (fractalStrip) {
             fractalStrip.generate();
-            fractalStrip.goFullscreen();
+            fractalStrip.canvas.classList.add('bright');
         }
 
         const fmt = (s) => {
@@ -2026,6 +1508,10 @@ class StandupShowdown {
 
 window.addEventListener('DOMContentLoaded', () => {
     fractalStrip = new FractalStrip(document.getElementById('fractal-strip'));
+    fractalStrip.generate();
+    window.addEventListener('resize', () => {
+        if (fractalStrip) fractalStrip._resizeCanvas();
+    });
     new StandupShowdown();
 });
 </script>
