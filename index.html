@@ -758,7 +758,7 @@
 
 <div id="flash-overlay"></div>
 <div id="app">
-    <canvas id="fractal-strip"></canvas>
+    <canvas id="fractal-strip" aria-hidden="true"></canvas>
     <header>
         <h1>LINUX ON WINDOWS</h1>
         <p class="subtitle">Daily Standup</p>
@@ -769,7 +769,7 @@
         <div class="setup-card">
             <h2>🐧 Assemble Your Team</h2>
             <div class="input-row">
-                <input type="text" id="name-input" placeholder="Enter a name..." autocomplete="off">
+                <input type="text" id="name-input" placeholder="Enter a name..." autocomplete="off" aria-label="Team member name">
                 <button class="btn btn-add" id="add-btn">Add</button>
             </div>
             <div id="name-chips"></div>
@@ -783,12 +783,12 @@
 
     <!-- Main Screen -->
     <div id="main-screen" class="hidden">
-        <div id="stage">
+        <div id="stage" role="status" aria-live="polite">
             <div id="display-name">Ready?</div>
-            <div id="speaking-timer"><span class="timer-dot"></span><span class="timer-value">0:00</span></div>
+            <div id="speaking-timer" aria-label="Speaking timer"><span class="timer-dot"></span><span class="timer-value">0:00</span></div>
         </div>
 
-        <button id="pick-btn" class="btn-pulse">🎲 PICK NEXT 🎲</button>
+        <button id="pick-btn" class="btn-pulse" aria-label="Pick next speaker">🎲 PICK NEXT 🎲</button>
 
         <div id="lists">
             <div class="name-list" id="waiting-list">
@@ -922,16 +922,16 @@ class FractalStrip {
             gl.compileShader(s);
             return s;
         };
-        const vs = compile(gl.VERTEX_SHADER, STRIP_VERT);
-        const fs = compile(gl.FRAGMENT_SHADER, STRIP_FRAG);
+        this._vs = compile(gl.VERTEX_SHADER, STRIP_VERT);
+        this._fs = compile(gl.FRAGMENT_SHADER, STRIP_FRAG);
         this.prog = gl.createProgram();
-        gl.attachShader(this.prog, vs);
-        gl.attachShader(this.prog, fs);
+        gl.attachShader(this.prog, this._vs);
+        gl.attachShader(this.prog, this._fs);
         gl.linkProgram(this.prog);
         gl.useProgram(this.prog);
 
-        const buf = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+        this._buf = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this._buf);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
         const aPos = gl.getAttribLocation(this.prog, 'a_pos');
         gl.enableVertexAttribArray(aPos);
@@ -982,6 +982,12 @@ class FractalStrip {
         const t = performance.now() / 1000 - this.startTime;
         const p = this.preset;
 
+        // Stop animating after 30s — the subtle drift is no longer noticeable
+        if (t > 30) {
+            this._running = false;
+            return;
+        }
+
         const cx = p.cx
             + Math.sin(t * 0.11) * 0.035
             + Math.sin(t * 0.07) * 0.015
@@ -1021,6 +1027,16 @@ class FractalStrip {
         const c1 = palette(0.6, h).map(v => Math.min(1, v * 1.3 + 0.1));
         const c2 = palette(0.3, h + 0.15).map(v => Math.min(1, v * 1.3 + 0.1));
         return [toHex(c1), toHex(c2)];
+    }
+
+    dispose() {
+        this._running = false;
+        if (!this.gl) return;
+        this.gl.deleteBuffer(this._buf);
+        this.gl.deleteProgram(this.prog);
+        this.gl.deleteShader(this._vs);
+        this.gl.deleteShader(this._fs);
+        this.gl = null;
     }
 }
 
@@ -1087,7 +1103,9 @@ class StandupShowdown {
         this.el.defaultsBtn.addEventListener('click', () => this._resetToDefaults());
 
         document.addEventListener('keydown', e => {
-            if (e.code === 'Space' && !this.el.mainScreen.classList.contains('hidden')) {
+            if (e.code === 'Space'
+                && !this.el.mainScreen.classList.contains('hidden')
+                && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
                 e.preventDefault();
                 this._onPickBtn();
             }
@@ -1111,7 +1129,11 @@ class StandupShowdown {
     }
 
     _saveToStorage() {
-        localStorage.setItem('standup-showdown-names', JSON.stringify(this.names));
+        try {
+            localStorage.setItem('standup-showdown-names', JSON.stringify(this.names));
+        } catch (e) {
+            // Storage full or unavailable — continue without persisting
+        }
     }
 
     _addName() {
@@ -1142,7 +1164,7 @@ class StandupShowdown {
             chip.className = 'chip';
             chip.innerHTML = `
                 <span>${this._esc(name)}</span>
-                <button class="remove-chip" data-name="${this._esc(name)}">×</button>
+                <button class="remove-chip" aria-label="Remove ${this._esc(name)}">×</button>
             `;
             chip.querySelector('.remove-chip').addEventListener('click', () => this._removeName(name));
             this.el.nameChips.appendChild(chip);
@@ -1241,12 +1263,13 @@ class StandupShowdown {
     }
 
     _renderLists() {
-        this.el.waitingNames.innerHTML = this.remaining
-            .map(n => `<span class="name-tag waiting">${this._esc(n)}<button class="remove-waiting" data-name="${this._esc(n)}">×</button></span>`).join('');
-        this.el.waitingNames.querySelectorAll('.remove-waiting').forEach(btn => {
-            btn.addEventListener('click', e => {
+        this.el.waitingNames.innerHTML = '';
+        this.remaining.forEach(name => {
+            const span = document.createElement('span');
+            span.className = 'name-tag waiting';
+            span.innerHTML = `${this._esc(name)}<button class="remove-waiting" aria-label="Mark ${this._esc(name)} absent">×</button>`;
+            span.querySelector('.remove-waiting').addEventListener('click', e => {
                 e.stopPropagation();
-                const name = btn.dataset.name;
                 this.remaining = this.remaining.filter(n => n !== name);
                 this.absent.push(name);
                 this._renderLists();
@@ -1254,24 +1277,28 @@ class StandupShowdown {
                     this.el.pickBtn.disabled = true;
                 }
             });
+            this.el.waitingNames.appendChild(span);
         });
+
         this.el.doneNames.innerHTML = this.completed
             .map(c => `<span class="name-tag done">${this._esc(c.name)}</span>`).join('');
 
         // Absent list
         if (this.absent.length > 0) {
             this.el.absentList.classList.remove('hidden');
-            this.el.absentNames.innerHTML = this.absent
-                .map(n => `<span class="name-tag absent-tag">${this._esc(n)}<button class="rejoin-btn" data-name="${this._esc(n)}">+</button></span>`).join('');
-            this.el.absentNames.querySelectorAll('.rejoin-btn').forEach(btn => {
-                btn.addEventListener('click', e => {
+            this.el.absentNames.innerHTML = '';
+            this.absent.forEach(name => {
+                const span = document.createElement('span');
+                span.className = 'name-tag absent-tag';
+                span.innerHTML = `${this._esc(name)}<button class="rejoin-btn" aria-label="Rejoin ${this._esc(name)}">+</button>`;
+                span.querySelector('.rejoin-btn').addEventListener('click', e => {
                     e.stopPropagation();
-                    const name = btn.dataset.name;
                     this.absent = this.absent.filter(n => n !== name);
                     this.remaining.push(name);
                     this._renderLists();
                     this.el.pickBtn.disabled = false;
                 });
+                this.el.absentNames.appendChild(span);
             });
         } else {
             this.el.absentList.classList.add('hidden');
