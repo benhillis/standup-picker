@@ -240,7 +240,7 @@
         #stage {
             width: 100%;
             max-width: 720px;
-            min-height: 140px;
+            height: 140px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -251,6 +251,7 @@
             border: 2px solid var(--surface-border);
             border-radius: 8px;
             flex-shrink: 0;
+            overflow: hidden;
         }
 
         #display-name {
@@ -752,7 +753,7 @@
         /* ═══ Responsive ═══ */
         @media (max-width: 600px) {
             .setup-card { padding: 24px; }
-            #stage { min-height: 120px; padding: 14px; }
+            #stage { height: 120px; padding: 14px; }
             #pick-btn { padding: 16px 36px; font-size: 0.9rem; }
             #lists { grid-template-columns: 1fr; }
             .name-list { max-height: 160px; }
