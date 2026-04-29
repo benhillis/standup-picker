@@ -1623,8 +1623,8 @@ window.addEventListener('DOMContentLoaded', () => {
         themeBtn.textContent = theme === 'light' ? '☀️' : '🌙';
         try { localStorage.setItem('standup-theme', theme); } catch (e) {}
     };
-    const saved = localStorage.getItem('standup-theme');
-    if (saved === 'light') applyTheme('light');
+    const saved = localStorage.getItem('standup-theme') || 'dark';
+    applyTheme(saved);
     themeBtn.addEventListener('click', () => {
         const current = document.documentElement.getAttribute('data-theme');
         applyTheme(current === 'light' ? 'dark' : 'light');
