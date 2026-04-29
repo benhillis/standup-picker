@@ -788,6 +788,14 @@
             transform: scale(1.1);
         }
 
+        [data-theme="light"] #stage {
+            background: color-mix(in srgb, var(--accent) 8%, var(--bg));
+            border-color: var(--accent-dim);
+        }
+        [data-theme="light"] #display-name {
+            text-shadow: none;
+        }
+
         [data-theme="light"] #fractal-strip {
             opacity: 0.4;
             filter: brightness(1.4) saturate(1.6) contrast(1.1);
