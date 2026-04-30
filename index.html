@@ -1359,7 +1359,11 @@ class StandupShowdown {
                 this.absent.push(name);
                 this._renderLists();
                 if (this.remaining.length === 0) {
-                    this.el.pickBtn.disabled = true;
+                    if (this.completed.length > 0) {
+                        this._setFinishMode();
+                    } else {
+                        this.el.pickBtn.disabled = true;
+                    }
                 }
             });
             this.el.waitingNames.appendChild(span);
@@ -1381,7 +1385,11 @@ class StandupShowdown {
                     this.absent = this.absent.filter(n => n !== name);
                     this.remaining.push(name);
                     this._renderLists();
+                    if (this.finishMode) {
+                        this._setPickMode();
+                    }
                     this.el.pickBtn.disabled = false;
+                    this.el.pickBtn.classList.add('btn-pulse');
                 });
                 this.el.absentNames.appendChild(span);
             });
